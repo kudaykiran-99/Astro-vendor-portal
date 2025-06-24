@@ -127,6 +127,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import TenderEvaluator from "../../../components/Tender_Evaluator"; // Adjust this import path if needed
 import PurchaseOrderDetails from "../../../components/Purchaseorder_details";
+import axios from "axios";
 
 const Form2 = () => {
   const { vendorId } = useParams();
@@ -141,7 +142,7 @@ const Form2 = () => {
   useEffect(() => {
     const fetchTenderIds = async () => {
       try {
-        const res = await fetch(
+        const res = await axios.get(
           `/api/vendor-master/approvedtenderIDs/${vendorId}`,
           {
             headers: {
@@ -150,10 +151,11 @@ const Form2 = () => {
             },
           }
         );
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.responseStatus?.message || res.statusText);
+       // const data = await res.json();
+       // if (!res.ok) throw new Error(data.responseStatus?.message || res.statusText);
 
-        setTenderIds(data.responseData || []);
+       // setTenderIds(data.responseData || []);
+        setTenderIds(res.data.responseData || []);
       } catch (err) {
         console.error("Failed to fetch tender IDs:", err);
         message.error("Could not fetch tender IDs: " + err.message);
@@ -185,7 +187,7 @@ const Form2 = () => {
              onClick={async () => {
   setSelectedTenderId(tenderId);
   try {
-    const res = await fetch(
+    const res = await axios.get(
       `/api/tender-requests/vendor/${tenderId}`,
       {
         headers: {
@@ -194,8 +196,9 @@ const Form2 = () => {
         },
       }
     );
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.responseStatus?.message || res.statusText);
+    //const data = await res.json();
+      const data =  res.data;
+    //if (!res.ok) throw new Error(data.responseStatus?.message || res.statusText);
 
     if (data.responseData === null) {
       // No vendor assigned, render TenderEvaluator (already handled below)

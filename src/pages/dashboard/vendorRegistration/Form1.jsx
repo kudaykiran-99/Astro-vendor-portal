@@ -14,6 +14,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
@@ -109,7 +110,7 @@ const Form1 = () => {
         updatedBy: actionPerformer,
       };
   
-      const response = await fetch(
+     /* const response = await axios.get(
         "/api/vendor-master-util/register",
         {
           method: "POST",
@@ -119,10 +120,21 @@ const Form1 = () => {
           },
           body: JSON.stringify(payload),
         }
+      );*/
+      const response = await axios.post(
+        "/api/vendor-master-util/register",
+        payload, 
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${auth.token}`,
+          },
+        }
       );
-  
-      const data = await response.json();
-      if (response.ok && data.responseStatus.statusCode === 0) {
+
+      const data = response.data;
+     // if (response.ok && data.responseStatus.statusCode === 0) {
+     if (data.responseStatus.statusCode === 0){
         setSuccessMessage(
           "You have registered successfully. Check your email for the credentials and Sign-in again using those credentials for further interactions!"
         );
@@ -132,18 +144,18 @@ const Form1 = () => {
         const vendorId = data.responseData?.vendorId;
         if (vendorId) {
           try {
-            const statusResponse = await fetch(
+            const statusResponse = await axios.get(
               `/api/vendor-quotation/VendorStatus/${vendorId}`,
-              {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${auth.token}`,
-                },
-              }
-            );
-            const statusData = await statusResponse.json();
-            if (statusResponse.ok && statusData.responseStatus.statusCode === 0) {
+                {
+                  headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${auth.token}`,
+                    },
+                }
+              );
+            const statusData = statusResponse.data;
+
+            if (data.responseStatus.statusCode === 0) {
               const emailStatus = statusData.responseData.emailStatus;
               if (emailStatus) {
                 alert("Email for credentials has been sent successfully.");

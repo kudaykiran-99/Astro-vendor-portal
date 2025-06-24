@@ -10,6 +10,8 @@ import FormContainer from '../../components/DKG_FormContainer';
 import { fetchMasters } from '../../store/slice/masterSlice';
 import { login } from '../../store/slice/authSlice';
 import { setVendor } from '../../store/slice/authSlice';
+import axios from 'axios';
+
 
 
 
@@ -31,14 +33,15 @@ const Login = () => {
     }));
     setMessage('');
   };
-
+/*
   const handleFormSubmit = async () => {
     const { userId, password } = formData;
 
     try {
-      const response = await fetch(`/api/vendor-quotation/VendorStatus/${userId}`);
+      const response = await axios.get(`/api/vendor-quotation/VendorStatus/${userId}`);
       if (response.ok) {
-        const data = await response.json();
+       // const data = await response.json();
+        const data = response.data;
         const status = data.responseData.status;
         const Password = data.responseData.password;
 
@@ -75,7 +78,43 @@ const Login = () => {
     } catch (error) {
       setMessage("Error fetching vendor status");
     }
-  };
+  };*/
+  const handleFormSubmit = async () => {
+  const { userId, password } = formData;
+
+  try {
+    const response = await axios.get(`/api/vendor-quotation/VendorStatus/${userId}`);
+    const data = response.data;
+    const status = data.responseData.status;
+    const Password = data.responseData.password;
+
+    if (Password !== password) {
+      setMessage("Incorrect password.");
+      return;
+    }
+
+    if (status === "APPROVED") {
+      try {
+        dispatch(setVendor(data.responseData));
+        navigate(`/vendor/${userId}`);
+      } catch (error) {
+        setMessage("Invalid credentials");
+      }
+    } else if (status === "REJECTED") {
+      const comments = data.responseData.comments || "Your request was rejected with no comments provided.";
+      setMessage(`Sorry, your request has been rejected. Reason: ${comments}`);
+    } else if (status === "AWAITING_APPROVAL") {
+      setMessage("Your registration is in review stage. Please wait for sometime...");
+    } else if (status === "NOT_FOUND") {
+      setMessage("Vendor ID not found");
+    } else {
+      setMessage("Unknown status");
+    }
+  } catch (error) {
+    setMessage("Error fetching vendor status");
+  }
+};
+
 
   const handleRegisterRedirect = () => {
     navigate('/app');

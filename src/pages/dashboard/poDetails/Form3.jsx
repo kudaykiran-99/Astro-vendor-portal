@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, Input, Button, Row, Col, message } from "antd";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 
 const Form3 = () => {
   const { vendorId } = useParams();
@@ -15,8 +16,8 @@ const Form3 = () => {
   useEffect(() => {
     const fetchVendorDetails = async () => {
       try {
-        const res = await fetch(
-          `/api/vendor-master/approvedVendorData/${vendorId}`,
+       const res = await axios.get(
+        `/api/vendor-master/approvedVendorData/${vendorId}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -24,8 +25,8 @@ const Form3 = () => {
             },
           }
         );
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.responseStatus?.message || res.statusText);
+        const data = res.data;
+        //if (!res.ok) throw new Error(data.responseStatus?.message || res.statusText);
         
         // assume the API returns an array of DTOs, take the first
         const dto = Array.isArray(data.responseData) ? data.responseData[0] : data.responseData;
