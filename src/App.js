@@ -1,24 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from 'react';
+import Routes from './pages/route/Routes';
+import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { fetchMasters } from './store/slice/masterSlice';
+
+//axios.defaults.baseURL="http://103.181.158.220:8081/astro-service"
+axios.defaults.baseURL="http://localhost:8081/astro-service"
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchMasters());
+  }, [dispatch])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes />
   );
 }
 
