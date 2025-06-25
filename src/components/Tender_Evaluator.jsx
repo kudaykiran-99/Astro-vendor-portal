@@ -25,7 +25,7 @@ const TenderEvaluator = ({ tenderId }) => {
   // ─── NEW EFFECT: FETCH AND COMPARE CLOSING DATE ──────────────────────────────
  useEffect(() => {
   axios
-    .get(`http://localhost:8081/astro-service/api/tender-requests/data/${tenderId}`)
+    .get(`/api/tender-requests/data/${tenderId}`)
     .then(res => {
       const cdString = res.data.responseData.closingDate; // e.g., "10/05/2025"
       if (!cdString) return;
@@ -71,7 +71,7 @@ const TenderEvaluator = ({ tenderId }) => {
       formData.append('file', quotationFile.file);
 
       const fileUploadResponse = await axios.post(
-        'http://103.181.158.220:8081/astro-service/file/upload?fileType=Tender',
+        '/file/upload?fileType=Tender',
         formData,
         {
           headers: {
