@@ -11,7 +11,7 @@ const PurchaseOrderDetails = ({ tenderId }) => {
   useEffect(() => {
     const fetchPurchaseOrderDetails = async () => {
       try {
-        const res = await axios.get(`http://localhost:8081/astro-service/api/vendor-master/approvedVendorData/${tenderId}`);
+        const res = await axios.get(`/api/vendor-master/approvedVendorData/${tenderId}`);
         if (res.data.responseStatus.statusCode === 0) {
           setOrderData(res.data.responseData);
         } else {
