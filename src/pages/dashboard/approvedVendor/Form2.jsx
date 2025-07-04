@@ -184,35 +184,41 @@ const Form2 = () => {
                 border: selectedTenderId === tenderId ? "2px solid #1890ff" : undefined,
               }}
              // onClick={() => setSelectedTenderId(tenderId)}
-             onClick={async () => {
-  setSelectedTenderId(tenderId);
-  try {
-    const res = await axios.get(
-      `/api/tender-requests/vendor/${tenderId}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth.token}`,
-        },
-      }
-    );
-    //const data = await res.json();
-      const data =  res.data;
-    //if (!res.ok) throw new Error(data.responseStatus?.message || res.statusText);
+           onClick={async () => {
+            setSelectedTenderId(tenderId);
+            try {
+              const res = await axios.get(
+                `/api/tender-requests/vendor/${tenderId}/${vendorId}`, // <-- Updated API with vendorId
+              {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${auth.token}`,
+              },
+            }
+        );
 
-    if (data.responseData === null) {
-      // No vendor assigned, render TenderEvaluator (already handled below)
-      setShowEvaluator(true);
-    } else {
-      // Vendor already assigned, show alternate (replace with your component later)
-      setShowEvaluator(false);
-      setExistingVendor(data.responseData);
-    }
-  } catch (err) {
-    console.error("Vendor check failed:", err);
-    message.error("Failed to check vendor: " + err.message);
-  }
-}}
+        const responseData = res.data.responseData;
+
+        if (responseData.qualified) {
+          setShowEvaluator(false);
+          setExistingVendor(vendorId); // qualified vendor
+        } else {
+          if (responseData.remarks) {
+            // Rejected with remarks
+           setShowEvaluator(false);
+            setExistingVendor("REJECTED_REMARKS:" + responseData.remarks);
+          } else {
+            // New vendor, no quotation yet
+            setShowEvaluator(true);
+            setExistingVendor(null);
+          }
+        }
+        } catch (err) {
+          console.error("Vendor check failed:", err);
+          message.error("Failed to check vendor: " + err.message);
+        }
+      }}
+
             >
               <a>{tenderId}</a>
             </Card>
@@ -235,13 +241,23 @@ const Form2 = () => {
 
  {selectedTenderId && !showEvaluator && existingVendor && (
         <div style={{ marginTop: "40px" }}>
-          {existingVendor === auth.vendorId ? (
+          {/*existingVendor === auth.vendorId ? (
             <PurchaseOrderDetails key={selectedTenderId} tenderId={selectedTenderId} />
           ) : (
             <div style={{ padding: 24, background: "#fff3f0", border: "1px solidrgb(218, 200, 199)", borderRadius: 4 }}>
               <strong>Vendor quotation is not qualified for Tender ID {selectedTenderId}.</strong>
             </div>
-          )}
+          )*/}
+          {existingVendor === vendorId ? (
+            <PurchaseOrderDetails key={selectedTenderId} tenderId={selectedTenderId} />
+            ) : existingVendor?.startsWith("REJECTED_REMARKS:") ? (
+            <div style={{ padding: 24, background: "#fff3f0", border: "1px solid rgb(218, 200, 199)", borderRadius: 4 }}>
+            <strong>Vendor quotation is not qualified for Tender ID {selectedTenderId}.</strong>
+            <br />
+            <span><strong>Reason for rejection:</strong> {existingVendor.replace("REJECTED_REMARKS:", "")}</span>
+          </div>
+          ) : null}
+
         </div>
       )}
 

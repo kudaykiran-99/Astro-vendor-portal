@@ -9,6 +9,7 @@ import Heading from './DKG_Heading';
 import Btn from './DKG_Btn';
 import { Form, Upload, Button, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
+import QueueModal from "./QueueModal";
 
 const TenderEvaluator = ({ tenderId }) => {
   //const { userId } = useSelector(state => state.auth);
@@ -21,6 +22,10 @@ const TenderEvaluator = ({ tenderId }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [closingDate, setClosingDate] = useState(null);
   const [isAfterClosing, setIsAfterClosing] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [detailsData, setDetailsData] = useState(null);
+
 
   // ─── NEW EFFECT: FETCH AND COMPARE CLOSING DATE ──────────────────────────────
  useEffect(() => {
@@ -146,6 +151,34 @@ const TenderEvaluator = ({ tenderId }) => {
   return (
     <FormContainer>
       <Heading title={`Upload Quotation for Tender ID: ${tenderId}`} />
+        <p style={{ fontWeight: "bold" }}>
+  Please click on Tender ID to see tender details:{" "}
+  <span
+    style={{
+      color: "#1890ff",
+      cursor: "pointer",
+      textDecoration: "underline",
+    }}
+    onClick={async () => {
+      setModalVisible(true);           // Open modal first
+      setDetailsData(null);           // Reset previous data to show loader
+      setSelectedRecord({ requestId: tenderId, workflowId: 4 });
+
+      try {
+        const response = await axios.get(`/api/tender-requests/${tenderId}`);
+        setDetailsData(response.data.responseData); // Populate details once loaded
+      } catch (err) {
+        console.error("Failed to fetch tender details:", err);
+        message.error("Could not load tender details");
+        setModalVisible(false); // Close if fetch fails
+      }
+    }}
+  >
+    {tenderId}
+  </span>
+</p>
+
+
 
       {/* Display the closing date */}
      {closingDate && (
@@ -175,6 +208,13 @@ const TenderEvaluator = ({ tenderId }) => {
     </div>
   </>
 )}
+   <QueueModal
+  modalVisible={modalVisible}
+  setModalVisible={setModalVisible}
+  selectedRecord={selectedRecord}
+  detailsData={detailsData}
+/>
+
 
     </FormContainer>
   );

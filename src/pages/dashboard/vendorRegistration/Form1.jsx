@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
+import { Country, State, City } from "country-state-city";
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
@@ -26,6 +27,15 @@ const Form1 = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState('');
+  const [vendorType, setVendorType] = useState('');
+  const [countryList, setCountryList] = useState([]);
+  const [stateList, setStateList] = useState([]);
+  const [cityList, setCityList] = useState([]);
+
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedState, setSelectedState] = useState('');
+
+
 
   // const handleSubmit = async (values) => {
   //   setLoading(true);
@@ -97,15 +107,24 @@ const Form1 = () => {
         pfmsVendorCode: values.pfmsVendorCode,
         primaryBusiness: values.primaryBusiness,
         address: values.address,
-        landlineNumber: values.landline,
+        alternateEmailOrPhoneNumber: values.alternateEmailOrPhoneNumber,
         mobileNumber: values.mobileNo,
-        faxNumber: values.fax,
+        //faxNumber: values.fax,
         panNumber: values.panNo,
         gstNumber: values.gstNo,
         bankName: values.bankName,
         accountNumber: values.accountNo,
         ifscCode: values.ifscCode,
         purchaseHistory: values.purchaseHistory,
+        swiftCode: values.swiftCode,
+        bicCode: values.bicCode,
+        ibanAbaNumber: values.ibanAbaNumber,
+        sortCode: values.sortCode,
+        bankRoutingNumber: values.bankRoutingNumber,
+        bankAddress: values.bankAddress,
+        country: values.country,     
+        state: values.state,         
+        place: values.city, 
         createdBy: actionPerformer,
         updatedBy: actionPerformer,
       };
@@ -186,6 +205,26 @@ const Form1 = () => {
       setLoading(false);
     }
   };  
+  useEffect(() => {
+  const countries = Country.getAllCountries();
+  setCountryList(countries);
+}, []);
+
+const handleCountryChange = (value) => {
+  setSelectedCountry(value);
+  const states = State.getStatesOfCountry(value);
+  setStateList(states);
+  setCityList([]);
+  form.setFieldsValue({ state: undefined, city: undefined });
+};
+
+const handleStateChange = (value) => {
+  setSelectedState(value);
+  const cities = City.getCitiesOfState(selectedCountry, value);
+  setCityList(cities);
+  form.setFieldsValue({ city: undefined });
+};
+
 
   // useEffect(() => {
   //   form.setFieldsValue({
@@ -287,7 +326,11 @@ const Form1 = () => {
               name="vendorType"
               rules={[{ required: true, message: "Vendor Type is required" }]}
             >
-              <Input />
+              <Select onChange={(value) => setVendorType(value)}>
+                <Option value="Domestic">Domestic</Option>
+                <Option value="International">International</Option>
+              </Select>
+              {/*<Input />*/}
             </Form.Item>
 
             <Form.Item
@@ -305,14 +348,28 @@ const Form1 = () => {
             <Form.Item
               label="Vendor Email"
               name="emailAddress"
-              rules={[{ required: true, message: "Vendor email is required" }]}
+              //rules={[{ required: true, message: "Vendor email is required" }]}
+              rules={[
+                { required: true, message: "Vendor email is required" },
+               {
+                validator: async (_, value) => {
+                  if (vendorType === 'International' && value && value.endsWith(".com")) {
+                   const response = await axios.get(`/api/vendor-master-util/check-email/${value}`);
+                  if (response.data.responseData.exists) {
+                    return Promise.reject("Email already exists!");
+                  }
+                  }
+                return Promise.resolve();
+                }
+              }
+            ]}
             >
               <Input />
             </Form.Item>
 
             <Form.Item
               name="registeredPlatform"
-              label="Registered Platform"
+              label="Registered in GeM/ CPP Portal"
               rules={[
                 { required: false, message: "Check is required" },
               ]}
@@ -324,9 +381,9 @@ const Form1 = () => {
             <Form.Item
               label="PFMS Vendor Code"
               name="pfmsVendorCode"
-              rules={[
+             /* rules={[
                 { required: true, message: "Vendor Code is required" },
-              ]}
+              ]}*/
             >
               <Input />
             </Form.Item>
@@ -338,59 +395,89 @@ const Form1 = () => {
               name="primaryBusiness"
               rules={[{ required: true, message: "Primary Business is required" }]}
             >
-              <Input />
+              <Select placeholder="Select Primary Business">
+                <Option value="Chemicals">Chemicals</Option>
+                <Option value="Computers & Peripherals">Computers & Peripherals</Option>
+                <Option value="Electricals">Electricals</Option>
+                <Option value="Electronics">Electronics</Option>
+                <Option value="Optics">Optics</Option>
+                <Option value="Fabrication">Fabrication</Option>
+                <Option value="Furniture">Furniture</Option>
+                <Option value="Hardware">Hardware</Option>
+                <Option value="Instrument/ Equipment & Machinery">Instrument/ Equipment & Machinery</Option>
+                <Option value="Software">Software</Option>
+                <Option value="Vehicles">Vehicles</Option>
+                <Option value="Stationary">Stationary</Option>
+                <Option value="Miscellaneous">Miscellaneous</Option>
+                <Option value="Services">Services</Option>
+              </Select>
             </Form.Item>
 
             <Form.Item
-              label="Address"
-              name="address"
-              rules={[{ required: true, message: "Full Address is required" }]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Form.Item
-              label="Landline Number"
-              name="landline"
+              label="Alternate Email/Phone Number"
+              name="alternateEmailOrPhoneNumber"
               rules={[{ required: true, message: "Landline Number is required" }]}
             >
               <Input />
             </Form.Item>
+              <Form.Item
+              label="PAN Number"
+              name="panNo"
+             // rules={[{ required: vendorType === 'Domestic', message: "PAN Number is required" }]}
+             rules={[
+                { required: vendorType === 'Domestic', message: "PAN Number is required" },
+                { min: 10, max: 10, message: "PAN Number must be 10 characters" },
+                 {
+                    validator: async (_, value) => {
+                    if (vendorType === 'Domestic') {
+                    if (!value || value.length < 10) {
+                      return Promise.resolve(); 
+                  }
+
+                  if (value.length === 10) {
+                      const response = await axios.get(`/api/vendor-master-util/check-panNumber/${value}`);
+                  if (response.data.responseData.exists) {
+                      return Promise.reject("PAN number already exists");
+                  } 
+                  }
+                }
+                  return Promise.resolve();
+                }
+              }
+
+              ]}
+            >
+              <Input disabled={vendorType === 'International'} />     
+            </Form.Item>
           </div>
 
           <div className="form-section">
-            <Form.Item
+          { /* <Form.Item
               label="Mobile Number"
               name="mobileNo"
               rules={[{ required: true, message: "Mobile Number is required" }]}
             >
               <Input />
-            </Form.Item>
+            </Form.Item>*/}
 
-            <Form.Item
+           { /*<Form.Item
               label="Fax Number"
               name="fax"
               rules={[{ required: true, message: "Fax Number is required" }]}
             >
               <Input />
-            </Form.Item>
+            </Form.Item>*/}
 
-            <Form.Item
-              label="PAN Number"
-              name="panNo"
-              rules={[{ required: true, message: "PAN Number is required" }]}
-            >
-              <Input />
-            </Form.Item>
+          
           </div>
 
           <div className="form-section">
             <Form.Item
               label="GST Number"
               name="gstNo"
-              rules={[{ required: true, message: "GST Number is required" }]}
+              rules={[{ required: vendorType === 'Domestic', message: "GST Number is required" }]}
             >
-              <Input />
+              <Input disabled={vendorType === 'International'}/>
             </Form.Item>
 
             <Form.Item
@@ -409,14 +496,76 @@ const Form1 = () => {
               <Input />
             </Form.Item>
           </div>
+          <div className="form-section">
+            {vendorType === 'International' && (
+          <>
+            <Form.Item
+              label="SWIFT Code"
+              name="swiftCode"
+              rules={[{ required: true, message: "SWIFT Code is required" }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label="BIC Code"
+              name="bicCode"
+              rules={[{ required: true, message: "BIC Code is required" }]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label="IBAN/ABA Number"
+              name="ibanAbaNumber"
+              rules={[{ required: true, message: "IBAN/ABA Number is required" }]}
+            >
+            <Input />
+            </Form.Item>
+
+   
+          </>
+        )}
+
+          </div>
+          <div className="form-section">
+              {vendorType === 'International' && (
+               <>
+                 <Form.Item
+                    label="Sort Code"
+                    name="sortCode"
+                    rules={[{ required: true, message: "Sort Code is required" }]}
+                  >
+                  <Input />
+                  </Form.Item>
+
+                <Form.Item
+                  label="Bank Routing Number"
+                  name="bankRoutingNumber"
+                  rules={[{ required: true, message: "Bank Routing Number is required" }]}
+                >
+                  <Input />
+                </Form.Item>
+
+               <Form.Item
+                  label="Bank Address"
+                  name="bankAddress"
+                  rules={[{ required: true, message: "Bank Address is required" }]}
+                >
+                  <Input />
+                </Form.Item>
+               </>
+              )}
+
+          </div>
 
           <div className="form-section">
             <Form.Item
               label="IFSC Code"
               name="ifscCode"
-              rules={[{ required: true, message: "IFSC Code is required" }]}
+              rules={[{ required: vendorType === 'Domestic', message: "IFSC Code is required" }]}
             >
-              <Input />
+              <Input disabled={vendorType === 'International'} />
             </Form.Item>
 
             {/* <Form.Item
@@ -426,6 +575,45 @@ const Form1 = () => {
             >
               <Input />
             </Form.Item> */}
+          </div>
+          <div className="form-section">
+             <Form.Item
+              label="Address"
+              name="address"
+              rules={[{ required: true, message: "Full Address is required" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item label="Country" name="country" rules={[{ required: true, message: 'Country is required' }]}>
+              <Select placeholder="Select Country" onChange={handleCountryChange}>
+                {countryList.map((country) => (
+                  <Option key={country.isoCode} value={country.isoCode}>
+                    {country.name}
+                  </Option>
+                  ))}
+                </Select>
+            </Form.Item>
+
+            <Form.Item label="State" name="state" rules={[{ required: true, message: 'State is required' }]}>
+              <Select placeholder="Select State" onChange={handleStateChange}>
+              {stateList.map((state) => (
+              <Option key={state.isoCode} value={state.isoCode}>
+                {state.name}
+              </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item label="City" name="city" rules={[{ required: true, message: 'City is required' }]}>
+            <Select placeholder="Select City">
+              {cityList.map((city, index) => (
+               <Option key={index} value={city.name}>
+                {city.name}
+              </Option>
+            ))}
+            </Select>
+          </Form.Item>
+
           </div>
 
           <Form.Item>
