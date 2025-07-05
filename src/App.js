@@ -9,6 +9,8 @@ import { fetchMasters } from './store/slice/masterSlice';
 export const baseURL = "http://localhost:8081/astro-service";
 axios.defaults.baseURL = baseURL;
 
+//axios.defaults.baseURL="/astro-service"
+
 function App() {
   const dispatch = useDispatch();
 

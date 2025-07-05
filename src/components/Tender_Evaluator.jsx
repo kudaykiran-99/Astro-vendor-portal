@@ -10,6 +10,8 @@ import Btn from './DKG_Btn';
 import { Form, Upload, Button, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import QueueModal from "./QueueModal";
+import { Modal } from "antd";
+
 
 const TenderEvaluator = ({ tenderId }) => {
   //const { userId } = useSelector(state => state.auth);
@@ -25,6 +27,10 @@ const TenderEvaluator = ({ tenderId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [detailsData, setDetailsData] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+
+
 
 
   // ─── NEW EFFECT: FETCH AND COMPARE CLOSING DATE ──────────────────────────────
@@ -112,10 +118,13 @@ const TenderEvaluator = ({ tenderId }) => {
       if (responseStatus.statusCode === 0) {
         message.success('Quotation submitted successfully');
       //  navigate('/purchaseOrder');
-       setTimeout(() => {
+      /* setTimeout(() => {
          // setSuccessMessage('');
           navigate('/');
-        }, 1000);
+        }, 1000);*/
+        setSuccessMessage("Vendor quotation submitted successfully.");
+        setQuotationFile(null);   
+        setShowPopup(true);   
       } else {
         throw new Error('Failed to submit quotation');
       }
@@ -148,9 +157,22 @@ const TenderEvaluator = ({ tenderId }) => {
       </div>
     </FormContainer>
   );*/
+  
+
   return (
     <FormContainer>
+       <Modal
+      title="Success"
+      open={showPopup}
+      onOk={() => setShowPopup(false)}
+      onCancel={() => setShowPopup(false)}
+      okText="OK"
+      cancelButtonProps={{ style: { display: "none" } }}
+    >
+      <p>Vendor quotation submitted successfully.</p>
+    </Modal>
       <Heading title={`Upload Quotation for Tender ID: ${tenderId}`} />
+
         <p style={{ fontWeight: "bold" }}>
   Please click on Tender ID to see tender details:{" "}
   <span
@@ -205,6 +227,8 @@ const TenderEvaluator = ({ tenderId }) => {
       <Btn onClick={handleSubmit} loading={isUploading}>
         Send Quotation for Evaluation
       </Btn>
+      
+
     </div>
   </>
 )}

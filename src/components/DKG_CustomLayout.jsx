@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+/*import React, { useEffect, useState } from "react";
 import Header from './DKG_Header'
 import { Layout} from "antd";
 import SideNav from "./DKG_SideNav";
@@ -18,7 +18,7 @@ const CustomLayout = () => {
     <>
       <Header toggleCollapse={toggleCollapse} />
       <div className="flex max-h-[100vh] overflow-y-auto h-[calc(100vh-4.5rem)] relative">
-          {/* <SideNav collapsed={collapsed} toggleCollapse={toggleCollapse} /> */}
+          {/* <SideNav collapsed={collapsed} toggleCollapse={toggleCollapse} /> *//*}
         <Layout className="layout overflow-hidden flex-1">
           <Content className="md:px-8 md:py-4 flex flex-col gap-4 md:gap-8 overflow-auto md:overflow-hidden relative main-content">
             <div className="relative z-1 overflow-auto flex flex-col gap-4 md:gap-8">
@@ -30,4 +30,26 @@ const CustomLayout = () => {
     </>
   );
 };
+export default CustomLayout;*/
+import React from "react";
+import { Layout } from "antd";
+import { Outlet } from "react-router-dom";
+import DKGHeader from "./DKG_Header"; // Make sure the path is correct
+
+const { Content } = Layout;
+
+const CustomLayout = () => {
+  return (
+    <Layout style={{ minHeight: "100vh" }}>
+      {/* Use custom header */}
+      <DKGHeader />
+
+      <Content style={{ margin: "24px", background: "#fff", padding: "20px" }}>
+        <Outlet />
+      </Content>
+    </Layout>
+  );
+};
+
 export default CustomLayout;
+
