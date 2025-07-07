@@ -8,6 +8,8 @@ import { fetchMasters } from './store/slice/masterSlice';
 //axios.defaults.baseURL="http://localhost:8081/astro-service"
 export const baseURL = "http://localhost:8081/astro-service";
 axios.defaults.baseURL = baseURL;
+//export const baseURL = "/astro-service";
+//axios.defaults.baseURL = baseURL;
 
 //axios.defaults.baseURL="/astro-service"
 
