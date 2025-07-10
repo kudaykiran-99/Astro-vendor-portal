@@ -11,6 +11,9 @@ import { Form, Upload, Button, message } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import QueueModal from "./QueueModal";
 import { Modal } from "antd";
+import QuotationHistoryModal from './QuotationHistoryModal';
+import { HistoryOutlined } from '@ant-design/icons';
+
 
 
 const TenderEvaluator = ({ tenderId }) => {
@@ -29,6 +32,7 @@ const TenderEvaluator = ({ tenderId }) => {
   const [detailsData, setDetailsData] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+  const [historyVisible, setHistoryVisible] = useState(false);
 
 
 
@@ -173,32 +177,43 @@ const TenderEvaluator = ({ tenderId }) => {
     </Modal>
       <Heading title={`Upload Quotation for Tender ID: ${tenderId}`} />
 
-        <p style={{ fontWeight: "bold" }}>
-  Please click on Tender ID to see tender details:{" "}
-  <span
-    style={{
-      color: "#1890ff",
-      cursor: "pointer",
-      textDecoration: "underline",
-    }}
-    onClick={async () => {
-      setModalVisible(true);           // Open modal first
-      setDetailsData(null);           // Reset previous data to show loader
-      setSelectedRecord({ requestId: tenderId, workflowId: 4 });
+       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+  <p style={{ fontWeight: "bold", marginBottom: 0 }}>
+    Please click on Tender ID to see tender details:{" "}
+    <span
+      style={{
+        color: "#1890ff",
+        cursor: "pointer",
+        textDecoration: "underline",
+      }}
+      onClick={async () => {
+        setModalVisible(true);
+        setDetailsData(null);
+        setSelectedRecord({ requestId: tenderId, workflowId: 4 });
 
-      try {
-        const response = await axios.get(`/api/tender-requests/${tenderId}`);
-        setDetailsData(response.data.responseData); // Populate details once loaded
-      } catch (err) {
-        console.error("Failed to fetch tender details:", err);
-        message.error("Could not load tender details");
-        setModalVisible(false); // Close if fetch fails
-      }
-    }}
+        try {
+          const response = await axios.get(`/api/tender-requests/${tenderId}`);
+          setDetailsData(response.data.responseData);
+        } catch (err) {
+          console.error("Failed to fetch tender details:", err);
+          message.error("Could not load tender details");
+          setModalVisible(false);
+        }
+      }}
+    >
+      {tenderId}
+    </span>
+  </p>
+
+  <Button
+    type="link"
+    icon={<HistoryOutlined />}
+    onClick={() => setHistoryVisible(true)}
   >
-    {tenderId}
-  </span>
-</p>
+    View Quotation History
+  </Button>
+</div>
+
 
 
 
@@ -238,6 +253,13 @@ const TenderEvaluator = ({ tenderId }) => {
   selectedRecord={selectedRecord}
   detailsData={detailsData}
 />
+<QuotationHistoryModal
+  open={historyVisible}
+  onClose={() => setHistoryVisible(false)}
+  tenderId={tenderId}
+  vendorId={vendorId}
+/>
+
 
 
     </FormContainer>

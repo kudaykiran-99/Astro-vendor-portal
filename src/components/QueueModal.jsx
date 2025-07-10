@@ -20,6 +20,25 @@ import {
 import { baseURL } from "../App";
 
 const QueueModal = ({ modalVisible, setModalVisible, detailsData }) => {
+  const calculateDaysBetween = (start, end) => {
+  const [sDay, sMonth, sYear] = start.split("/").map(Number);
+  const [eDay, eMonth, eYear] = end.split("/").map(Number);
+
+  const startDate = new Date(sYear, sMonth - 1, sDay);
+  const endDate = new Date(eYear, eMonth - 1, eDay);
+
+  const diffTime = endDate - startDate;
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+};
+const documentLabels = {
+  uploadTenderDocuments: "Tender Documents",
+  uploadSpecificTermsAndConditions: "Specific Terms & Conditions",
+  uploadGeneralTermsAndConditions: "General Terms & Conditions",
+  bidSecurityDeclarationFileName: "Bid Security Declaration Format",
+  mllStatusDeclarationFileName: "MII Local Content Declaration Format",
+};
+
+
   return (
     <Modal
       title="Tender Details"
@@ -48,15 +67,21 @@ const QueueModal = ({ modalVisible, setModalVisible, detailsData }) => {
             </Typography.Title>
             <Row gutter={24}>
               <Col span={12}>
+                <div className="detail-item"><strong>Tender Inviting Authority:</strong> {"Indian Institute Of Astrophysics"}</div>
                 <div className="detail-item"><strong>Tender ID:</strong> {detailsData.tenderId || "N/A"}</div>
                 <div className="detail-item"><strong>Title:</strong> {detailsData.titleOfTender || "N/A"}</div>
-                <div className="detail-item"><strong>Bid Type:</strong> {detailsData.bidType || "N/A"}</div>
+                <div className="detail-item"><strong>Type of Tender:</strong> {detailsData.bidType || "N/A"}</div>
+                 <div className="detail-item"><strong>Buyer Email:</strong> {"purchase@iiap.res.in"}</div>
               </Col>
               <Col span={12}>
-                <div className="detail-item"><strong>Opening Date:</strong> {detailsData.openingDate || "N/A"}</div>
-                <div className="detail-item"><strong>Closing Date:</strong> {detailsData.closingDate || "N/A"}</div>
+                <div className="detail-item"><strong>Tender Start Date:</strong> {detailsData.openingDate || "N/A"}</div>
+                <div className="detail-item"><strong>Tender End Date:</strong> {detailsData.closingDate || "N/A"}</div>
+                <div className="detail-item"><strong>Tender Offer Validity(From Tender End Date):</strong> {" "}
+                  {detailsData.openingDate && detailsData.closingDate
+                  ? calculateDaysBetween(detailsData.openingDate, detailsData.closingDate)
+                  : "N/A"}</div>
                 <div className="detail-item">
-                  <strong>Total Value:</strong>
+                  <strong>Estimated Tender Value:</strong>
                   <span className="amount">
                     {detailsData.totalTenderValue ? `₹${detailsData.totalTenderValue.toFixed(2)}` : "N/A"}
                   </span>
@@ -66,12 +91,12 @@ const QueueModal = ({ modalVisible, setModalVisible, detailsData }) => {
           </div>
 
           {/* Document Details */}
-          <div className="detail-section">
+       { /*  <div className="detail-section">
             <Typography.Title level={5} className="section-title">
               <FilePdfOutlined /> Document Details
             </Typography.Title>
             <Row gutter={24}>
-              {["uploadTenderDocuments", "uploadSpecificTermsAndConditions", "uploadGeneralTermsAndConditions"].map((key, idx) => (
+              {Object.entries(documentLabels).map(([key, label], idx) => (
                 <Col span={8} key={idx}>
                   <div className="detail-item">
                     <strong>{key.replace("upload", "").replace(/([A-Z])/g, " $1")}:</strong>
@@ -92,7 +117,36 @@ const QueueModal = ({ modalVisible, setModalVisible, detailsData }) => {
                 </Col>
               ))}
             </Row>
-          </div>
+          </div>*/}
+          {/* Document Details */}
+<div className="detail-section">
+  <Typography.Title level={5} className="section-title">
+    <FilePdfOutlined /> Document Details
+  </Typography.Title>
+  <Row gutter={24}>
+    {Object.entries(documentLabels).map(([key, label], idx) => (
+      <Col span={8} key={idx}>
+        <div className="detail-item">
+          <strong>{label}:</strong>
+          {detailsData[key]
+            ? detailsData[key].split(",").map((fileName, index) => (
+                <div key={index}>
+                  <a
+                    href={`${baseURL}/file/view/Tender/${fileName.trim()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {fileName.trim()} (View)
+                  </a>
+                </div>
+              ))
+            : "N/A"}
+        </div>
+      </Col>
+    ))}
+  </Row>
+</div>
+
 
           {/* Commercial Terms & Payment */}
           <div className="detail-section">
@@ -105,18 +159,11 @@ const QueueModal = ({ modalVisible, setModalVisible, detailsData }) => {
                 <div className="detail-item"><strong>Consignee Address:</strong> {detailsData.consignes || "N/A"}</div>
                 <div className="detail-item"><strong>Billing Address:</strong> {detailsData.billinngAddress || "N/A"}</div>
               </Col>
-              <Col span={12}>
-                <Typography.Title level={5} className="section-title">
-                  <AuditOutlined /> Payment & Performance
-                </Typography.Title>
-                <div className="detail-item"><strong>Payment Terms:</strong> {detailsData.paymentTerms || "N/A"}</div>
-                <div className="detail-item"><strong>LD Clause:</strong> {detailsData.ldClause || "N/A"}</div>
-              </Col>
             </Row>
           </div>
 
           {/* Bid Security */}
-          {detailsData.bidSecurityDeclaration && (
+          {/*detailsData.bidSecurityDeclaration && (
             <div className="detail-section">
               <Typography.Title level={5} className="section-title">
                 <ProjectOutlined /> Bid Security
@@ -145,10 +192,10 @@ const QueueModal = ({ modalVisible, setModalVisible, detailsData }) => {
                 </Col>
               </Row>
             </div>
-          )}
+          )*/}
 
           {/* MLL Status */}
-          {detailsData.mllStatusDeclaration && (
+          {/*detailsData.mllStatusDeclaration && (
             <div className="detail-section">
               <Typography.Title level={5} className="section-title">
                 <ProjectOutlined /> Mll Status
@@ -177,89 +224,44 @@ const QueueModal = ({ modalVisible, setModalVisible, detailsData }) => {
                 </Col>
               </Row>
             </div>
-          )}
+          )*/}
 
           {/* Associated Indents */}
-          {detailsData.indentResponseDTO && detailsData.indentResponseDTO.length > 0 && (
-            <div className="detail-section">
-              <Typography.Title level={5} className="section-title">
-                <SolutionOutlined /> Associated Indents ({detailsData.indentResponseDTO.length})
-              </Typography.Title>
+          {detailsData.indentResponseDTO?.length > 0 && (
+  <div className="detail-section">
+    <Typography.Title level={5} className="section-title">
+      <SolutionOutlined /> Material Requirements
+    </Typography.Title>
 
-              <div style={{ marginBottom: 16 }}>
-                <strong>Indent IDs: </strong>
-                {detailsData.indentResponseDTO.map((indent, index) => (
-                  <Tag color="blue" key={indent.indentId} style={{ margin: "4px 4px" }}>
-                    {indent.indentId || `Indent ${index + 1}`}
-                  </Tag>
-                ))}
-              </div>
+    {detailsData.indentResponseDTO.map((indent, index) => (
+      <div key={index} style={{ marginBottom: 24 }}>
+        {indent.materialDetails?.length > 0 ? (
+          <Table
+            dataSource={indent.materialDetails}
+            pagination={false}
+            bordered
+            size="small"
+            rowKey="materialCode"
+            columns={[
+             // { title: "Material Code", dataIndex: "materialCode", width: 120 },
+              { title: "Description", dataIndex: "materialDescription", ellipsis: true },
+              { title: "Quantity", dataIndex: "quantity", align: "right" },
+              { title: "UOM", dataIndex: "uom", width: 100 },
+              { title: "Unit Price", dataIndex: "unitPrice", align: "right", render: text => `₹${text?.toFixed(2)}` },
+              { title: "Total Price", dataIndex: "totalPrice", align: "right", render: text => <strong>₹{text?.toFixed(2)}</strong> },
+             // { title: "Budget Code", dataIndex: "budgetCode", width: 120 },
+            ]}
+          />
+        ) : (
+          <div style={{ textAlign: "center", padding: 16 }}>
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No material details found" />
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+)}
 
-              <Collapse accordion defaultActiveKey={["0"]}>
-                {detailsData.indentResponseDTO.map((indent, index) => (
-                  <Collapse.Panel
-                    key={index}
-                    header={`Indent ${index + 1} - ${indent.indentId || "N/A"}`}
-                    extra={<Tag color={indent.statusColor || "processing"}>{indent.status || "Pending"}</Tag>}
-                  >
-                    <div style={{ padding: "16px 0" }}>
-                      <Row gutter={24}>
-                        <Col span={12}>
-                          <div className="detail-item"><strong>Project Name:</strong> {indent.projectName || "N/A"}</div>
-                          <div className="detail-item"><strong>Indentor:</strong> {indent.indentorName || "N/A"}</div>
-                          <div className="detail-item"><strong>Contact:</strong> {indent.indentorMobileNo || "N/A"}</div>
-                        </Col>
-                        <Col span={12}>
-                          <div className="detail-item"><strong>Email:</strong> {indent.indentorEmailAddress || "N/A"}</div>
-                          <div className="detail-item"><strong>Location:</strong> {indent.consignesLocation || "N/A"}</div>
-                          <div className="detail-item"><strong>Total Value:</strong> ₹{indent.totalPriceOfAllMaterials?.toFixed(2) || "N/A"}</div>
-                        </Col>
-                      </Row>
-
-                      {indent.isPreBidMeetingRequired && (
-                        <div style={{ marginTop: 16 }}>
-                          <Divider orientation="left" plain>Pre-Bid Meeting Details</Divider>
-                          <Row gutter={24}>
-                            <Col span={12}>
-                              <div className="detail-item"><strong>Date:</strong> {indent.preBidMeetingDate || "N/A"}</div>
-                            </Col>
-                            <Col span={12}>
-                              <div className="detail-item"><strong>Venue:</strong> {indent.preBidMeetingVenue || "N/A"}</div>
-                            </Col>
-                          </Row>
-                        </div>
-                      )}
-
-                      <Divider orientation="left" plain>Material Requirements</Divider>
-
-                      {indent.materialDetails?.length > 0 ? (
-                        <Table
-                          dataSource={indent.materialDetails}
-                          pagination={false}
-                          bordered
-                          size="small"
-                          rowKey="materialCode"
-                          columns={[
-                            { title: "Material Code", dataIndex: "materialCode", width: 120 },
-                            { title: "Description", dataIndex: "materialDescription", ellipsis: true },
-                            { title: "Quantity", dataIndex: "quantity", align: "right" },
-                            { title: "Unit Price", dataIndex: "unitPrice", align: "right", render: text => `₹${text?.toFixed(2)}` },
-                            { title: "Total Price", dataIndex: "totalPrice", align: "right", render: text => <strong>₹{text?.toFixed(2)}</strong> },
-                            { title: "UOM", dataIndex: "uom", width: 100 },
-                            { title: "Budget Code", dataIndex: "budgetCode", width: 120 },
-                          ]}
-                        />
-                      ) : (
-                        <div style={{ textAlign: "center", padding: 16 }}>
-                          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No material details found" />
-                        </div>
-                      )}
-                    </div>
-                  </Collapse.Panel>
-                ))}
-              </Collapse>
-            </div>
-          )}
         </>
       ) : (
         <div style={{ textAlign: "center", padding: "40px 0" }}>

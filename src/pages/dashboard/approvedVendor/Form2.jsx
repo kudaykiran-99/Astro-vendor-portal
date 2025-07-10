@@ -199,7 +199,7 @@ const Form2 = () => {
 
         const responseData = res.data.responseData;
 
-        if (responseData.qualified) {
+      /*  if (responseData.qualified) {
           setShowEvaluator(false);
           setExistingVendor(vendorId); // qualified vendor
         } else {
@@ -211,7 +211,22 @@ const Form2 = () => {
             // New vendor, no quotation yet
             setShowEvaluator(true);
             setExistingVendor(null);
-          }
+          }*/
+         if (responseData.qualified && responseData.changeRequest) {
+  setShowEvaluator(true);  // Allow re-upload in case of change request
+  setExistingVendor(null);
+} else if(responseData.qualified && !responseData.changeRequest){
+          setShowEvaluator(false);
+          setExistingVendor(vendorId); 
+}else {
+  if (responseData.remarks) {
+    setShowEvaluator(false);
+    setExistingVendor("REJECTED_REMARKS:" + responseData.remarks);
+  } else {
+    setShowEvaluator(true);
+    setExistingVendor(vendorId); // fully rejected or invalid
+  }
+
         }
         } catch (err) {
           console.error("Vendor check failed:", err);
