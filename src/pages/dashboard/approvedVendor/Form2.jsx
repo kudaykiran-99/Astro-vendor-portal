@@ -1,3 +1,12 @@
+import React, { useEffect, useState, useCallback } from "react";
+import { Card, Row, Col, message, Spin , Tag} from "antd";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+import TenderEvaluator from "../../../components/Tender_Evaluator";
+import PurchaseOrderDetails from "../../../components/Purchaseorder_details";
+
+
 // import React, { useEffect, useState } from "react";
 // import { Form, Input, Button, Row, Col, message } from "antd";
 // import { useSelector } from "react-redux";
@@ -120,7 +129,7 @@
 // };
 
 // export default Form2;
-
+/*
 import React, { useEffect, useState } from "react";
 import { Card, Row, Col, message, Spin } from "antd";
 import { useSelector } from "react-redux";
@@ -211,7 +220,7 @@ const Form2 = () => {
             // New vendor, no quotation yet
             setShowEvaluator(true);
             setExistingVendor(null);
-          }*/
+          }*/                                    /*
          if (responseData.qualified && responseData.changeRequest) {
   setShowEvaluator(true);  // Allow re-upload in case of change request
   setExistingVendor(null);
@@ -241,13 +250,13 @@ const Form2 = () => {
         ))}
       </Row>
 
-      {/* Render TenderEvaluator below the cards */}
+      {/* Render TenderEvaluator below the cards *//*}
       {/*{selectedTenderId && (
         <div style={{ marginTop: "40px" }}>
-          {/* <TenderEvaluator tenderId={selectedTenderId} bidType={bidType} /> */}
+          {/* <TenderEvaluator tenderId={selectedTenderId} bidType={bidType} /> */
         {/*}  <TenderEvaluator tenderId={selectedTenderId} />
         </div>
-      )}*/}
+      )}*/}                         /*
       {selectedTenderId && showEvaluator && (
   <div style={{ marginTop: "40px" }}>
     <TenderEvaluator key={selectedTenderId} tenderId={selectedTenderId} />
@@ -262,7 +271,7 @@ const Form2 = () => {
             <div style={{ padding: 24, background: "#fff3f0", border: "1px solidrgb(218, 200, 199)", borderRadius: 4 }}>
               <strong>Vendor quotation is not qualified for Tender ID {selectedTenderId}.</strong>
             </div>
-          )*/}
+          )*//*}                                     /*
           {existingVendor === vendorId ? (
             <PurchaseOrderDetails key={selectedTenderId} tenderId={selectedTenderId} />
             ) : existingVendor?.startsWith("REJECTED_REMARKS:") ? (
@@ -281,4 +290,502 @@ const Form2 = () => {
 };
 
 export default Form2;
+*/
 
+/*
+const Form2 = () => {
+  const { vendorId } = useParams();
+  const auth = useSelector((state) => state.auth);
+  const [tenderIds, setTenderIds] = useState([]);
+  const [selectedTenderId, setSelectedTenderId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedTenderLoading, setSelectedTenderLoading] = useState(false);
+  const [showEvaluator, setShowEvaluator] = useState(false);
+  const [existingVendor, setExistingVendor] = useState(null);
+  const [qualificationMeta, setQualificationMeta] = useState(null); // holds last response for UI
+
+  useEffect(() => {
+    const fetchTenderIds = async () => {
+      try {
+        const res = await axios.get(
+          `/api/vendor-master/approvedtenderIDs/${vendorId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${auth.token}`,
+            },
+          }
+        );
+        setTenderIds(res.data.responseData || []);
+      } catch (err) {
+        console.error("Failed to fetch tender IDs:", err);
+        message.error("Could not fetch tender IDs: " + (err?.message || ""));
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (vendorId) fetchTenderIds();
+  }, [vendorId, auth.token]);
+
+  const handleTenderCardClick = useCallback(
+    async (tenderId) => {
+      setSelectedTenderId(tenderId);
+      setSelectedTenderLoading(true);
+      try {
+        const res = await axios.get(
+          `/api/tender-requests/vendor/${tenderId}/${vendorId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${auth.token}`,
+            },
+          }
+        );
+        const responseData = res.data?.responseData || {};
+
+        const {
+          qualified,
+          changeRequest,
+          remarks,
+          actionStatus,    // e.g., "ACCEPTED", "REJECTED", "CHANGE_REQUESTED", etc.
+          actionTakenBy,   // integer user id who took last action
+        } = responseData;
+
+        setQualificationMeta({ actionStatus, actionTakenBy, remarks });
+
+        // Decision logic
+        if (qualified) {
+          if (actionStatus === "ACCEPTED" && !changeRequest) {
+            setShowEvaluator(false);
+            setExistingVendor(vendorId); // fully qualified & accepted
+          } else if (
+            actionStatus === "CHANGE_REQUESTED_TO_INTENTOR" ||
+            changeRequest
+          ) {
+            setShowEvaluator(true);
+            setExistingVendor(null);
+          } else if (actionStatus === "REJECTED") {
+            setShowEvaluator(false);
+            setExistingVendor(
+              `REJECTED_REMARKS:${remarks || "No reason provided"}`
+            );
+          } else {
+            // fallback: allow evaluation
+            setShowEvaluator(true);
+            setExistingVendor(null);
+          }
+        } else {
+          if (actionStatus === "REJECTED") {
+            setShowEvaluator(false);
+            setExistingVendor(
+              `REJECTED_REMARKS:${remarks || "No reason provided"}`
+            );
+          } else {
+            // not yet qualified / new / pending
+            setShowEvaluator(true);
+            setExistingVendor(null);
+          }
+        }
+      } catch (err) {
+        console.error("Vendor check failed:", err);
+        message.error("Failed to check vendor: " + (err?.message || ""));
+      } finally {
+        setSelectedTenderLoading(false);
+      }
+    },
+    [vendorId, auth.token]
+  );
+
+  if (loading) return <Spin tip="Loading Tender IDs..." />;
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2 className="font-bold mb-2">Approved Tender IDs</h2>
+      <Row gutter={[16, 16]}>
+        {tenderIds.map((tenderId) => (
+          <Col key={tenderId} xs={24} sm={12} md={8} lg={6}>
+            <Card
+              hoverable
+              style={{
+                textAlign: "center",
+                cursor: "pointer",
+                border:
+                  selectedTenderId === tenderId
+                    ? "2px solid #1890ff"
+                    : undefined,
+              }}
+              onClick={() => handleTenderCardClick(tenderId)}
+            >
+              {selectedTenderLoading && selectedTenderId === tenderId ? (
+                <Spin />
+              ) : (
+                <a>{tenderId}</a>
+              )}
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      {selectedTenderId && showEvaluator && (
+        <div style={{ marginTop: "40px" }}>
+          <TenderEvaluator
+            key={selectedTenderId}
+            tenderId={selectedTenderId}
+          />
+        </div>
+      )}
+
+      {selectedTenderId && !showEvaluator && existingVendor && (
+        <div style={{ marginTop: "40px" }}>
+          {existingVendor === vendorId ? (
+            <PurchaseOrderDetails
+              key={selectedTenderId}
+              tenderId={selectedTenderId}
+            />
+          ) : existingVendor?.startsWith("REJECTED_REMARKS:") ? (
+            <div
+              style={{
+                padding: 24,
+                background: "#fff3f0",
+                border: "1px solid rgb(218, 200, 199)",
+                borderRadius: 4,
+              }}
+            >
+              <strong>
+                Vendor quotation is not qualified for Tender ID{" "}
+                {selectedTenderId}.
+              </strong>
+              <br />
+              <span>
+                <strong>Reason for rejection:</strong>{" "}
+                {existingVendor.replace("REJECTED_REMARKS:", "")}
+              </span>
+              {qualificationMeta?.actionTakenBy && (
+                <div style={{ marginTop: 8 }}>
+                  <Tag>
+                    Action taken by user ID: {qualificationMeta.actionTakenBy}
+                  </Tag>
+                </div>
+              )}
+              {qualificationMeta?.actionStatus && (
+                <div style={{ marginTop: 4 }}>
+                  <Tag color="orange">
+                    Last action status: {qualificationMeta.actionStatus}
+                  </Tag>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Form2;*/
+
+
+const mapUserIdToRole = (userId) => {
+  // Replace with real user lookup if needed.
+  switch (userId) {
+    case 18:
+      return "Indent Creator";
+    case 17:
+      return "Reporting Officer";
+    // Add other known mappings here, e.g., SPO etc.
+    default:
+      return `${userId}`;
+  }
+};
+const Form2 = () => {
+  const { vendorId } = useParams();
+  const auth = useSelector((state) => state.auth);
+  const [tenderIds, setTenderIds] = useState([]);
+  const [selectedTenderId, setSelectedTenderId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedTenderLoading, setSelectedTenderLoading] = useState(false);
+
+  const [vendorState, setVendorState] = useState({
+    qualified: false,
+    changeRequest: false,
+    remarks: "",
+    actionTakenBy: null,
+    actionStatus: null,
+  });
+
+  useEffect(() => {
+    const fetchTenderIds = async () => {
+      try {
+        const res = await axios.get(
+          `/api/vendor-master/approvedtenderIDs/${vendorId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${auth.token}`,
+            },
+          }
+        );
+        setTenderIds(res.data.responseData || []);
+      } catch (err) {
+        console.error("Failed to fetch tender IDs:", err);
+        message.error("Could not fetch tender IDs: " + (err.message || ""));
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (vendorId) fetchTenderIds();
+  }, [vendorId, auth.token]);
+
+  const handleTenderCardClick = useCallback(
+    async (tenderId) => {
+      setSelectedTenderId(tenderId);
+      setSelectedTenderLoading(true);
+      try {
+        const res = await axios.get(
+          `/api/tender-requests/vendor/${tenderId}/${vendorId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${auth.token}`,
+            },
+          }
+        );
+        const responseData = res.data?.responseData || {};
+        const {
+          qualified = false,
+          changeRequest = false,
+          remarks = "",
+          actionTakenBy = null,
+          actionStatus = null,
+        } = responseData;
+
+        setVendorState({
+          qualified,
+          changeRequest,
+          remarks,
+          actionTakenBy,
+          actionStatus,
+        });
+      } catch (err) {
+        console.error("Vendor check failed:", err);
+        message.error("Failed to check vendor: " + (err.message || ""));
+        setVendorState({
+          qualified: false,
+          changeRequest: false,
+          remarks: "",
+          actionTakenBy: null,
+          actionStatus: null,
+        });
+      } finally {
+        setSelectedTenderLoading(false);
+      }
+    },
+    [vendorId, auth.token]
+  );
+
+  if (loading) return <Spin tip="Loading Tender IDs..." />;
+
+  const {
+    qualified,
+    changeRequest,
+    remarks,
+    actionTakenBy,
+    actionStatus,
+  } = vendorState;
+
+const isChangeRequest = actionStatus === "CHANGE_REQUESTED";
+const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR";
+
+
+  const isSubmittedOrNone =
+    actionStatus === "SUBMITTED" || actionStatus === null || actionStatus === undefined;
+  const isAccepted = actionStatus === "ACCEPTED";
+  const isRejected = actionStatus === "REJECTED";
+
+
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2 className="font-bold mb-2">Approved Tender IDs</h2>
+      <Row gutter={[16, 16]}>
+        {tenderIds.map((tenderId) => (
+          <Col key={tenderId} xs={24} sm={12} md={8} lg={6}>
+            <Card
+              hoverable
+              style={{
+                textAlign: "center",
+                cursor: "pointer",
+                border:
+                  selectedTenderId === tenderId
+                    ? "2px solid #1890ff"
+                    : undefined,
+              }}
+              onClick={() => handleTenderCardClick(tenderId)}
+            >
+              {selectedTenderLoading && selectedTenderId === tenderId ? (
+                <Spin />
+              ) : (
+                <a>{tenderId}</a>
+              )}
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      {/* Change Request Banner */}
+      {selectedTenderId && isChangeRequest && (
+        <div
+          style={{
+            marginTop: 24,
+            padding: "12px 16px",
+            background: "#fffbe6",
+            border: "1px solid #ffe58f",
+            borderRadius: 4,
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+          }}
+        >
+          <strong style={{ marginRight: 8 }}>Change Requested</strong>
+        { /* <span>
+            by <em>{mapUserIdToRole(actionTakenBy)}</em>
+          </span>*/}
+          {actionTakenBy && (
+            <span>
+              by <em>{actionTakenBy}</em>
+            </span>
+          )}
+          {remarks && (
+            <span>
+              — <strong>Remarks:</strong> {remarks}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Show TenderEvaluator when change requested, submitted, or no action yet */}
+      {selectedTenderId && (isChangeRequest || isSubmittedOrNone) && (
+        <div style={{ marginTop: "40px" }}>
+          <TenderEvaluator key={selectedTenderId} tenderId={selectedTenderId} />
+        </div>
+      )}
+
+      {/* Show PurchaseOrderDetails when fully qualified & accepted (and not change requested) */}
+      {/*selectedTenderId && qualified && !changeRequest && isAccepted && (
+        <div style={{ marginTop: "40px" }}>
+          <PurchaseOrderDetails
+            key={selectedTenderId}
+            tenderId={selectedTenderId}
+          />
+        </div>
+      )*/}
+       {/* Purchase Order: only when Store Purchase Officer did VENDOR QULIFIED */}
+      {selectedTenderId &&
+        actionTakenBy === "Store Purchase Officer" &&
+        actionStatus === "VENDOR QULIFIED" && (
+          <div style={{ marginTop: "40px" }}>
+            <PurchaseOrderDetails
+              key={selectedTenderId}
+              tenderId={selectedTenderId}
+            />
+          </div>
+        )}
+
+      {/* Show rejection reason when explicitly rejected or unqualified (excluding change request) */}
+   { /* Show rejection reason only when explicitly rejected */}
+{selectedTenderId && (actionStatus === "ACCEPTED" || actionStatus === "REJECTED") && (
+  <div style={{ marginTop: "40px" }}>
+    <div
+      style={{
+        padding: 24,
+        background: actionStatus === "ACCEPTED" ? "#e6ffed" : "#fff3f0",
+        border: actionStatus === "ACCEPTED"
+          ? "1px solid #b7eb8f"
+          : "1px solid rgb(218, 200, 199)",
+        borderRadius: 4,
+      }}
+    >
+      <strong>
+        Vendor quotation for Tender ID {selectedTenderId} is {actionStatus}.
+      </strong>
+      {remarks && (
+        <div style={{ marginTop: 8 }}>
+          <span>
+            <strong>Remarks:</strong> {remarks}
+          </span>
+        </div>
+      )}
+      {actionTakenBy && (
+        <div style={{ marginTop: 4 }}>
+          <span>
+            <strong>Action taken by:</strong> {mapUserIdToRole(actionTakenBy)}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+  {/* Special red box when Store Purchase Officer accepted but PO not raised */}
+      {selectedTenderId &&
+        actionTakenBy === "Store Purchase Officer" &&
+        actionStatus === "ACCEPTED" && (
+          <div style={{ marginTop: "40px" }}>
+            <div
+              style={{
+                padding: 24,
+                background: "#fff3f0",
+                border: "1px solid rgb(218, 200, 199)",
+                borderRadius: 4,
+              }}  >
+              <strong>
+                Store Purchase Officer accepted the vendor but PO is not raised on this vendor for Tender ID {selectedTenderId}.
+              </strong>
+              {remarks && (
+                <div style={{ marginTop: 8 }}>
+                  <span>
+                    <strong>Remarks:</strong> {remarks}
+                  </span>
+                </div>
+                 )}
+            </div>
+          </div>
+        )}
+{/* Red box for CHANGE_REQUESTED_TO_INTENTOR */}
+{selectedTenderId && isChangeRequestToIndentor && (
+  <div style={{ marginTop: "40px" }}>
+    <div
+      style={{
+        padding: 24,
+        background: "#fff3f0",
+        border: "1px solid rgb(218, 200, 199)",
+        borderRadius: 4,
+      }}
+    >
+      <strong>
+        Vendor quotation for Tender ID {selectedTenderId} is {actionStatus}.
+      </strong>
+      {remarks && (
+        <div style={{ marginTop: 8 }}>
+          <span>
+            <strong>Remarks:</strong> {remarks}
+          </span>
+        </div>
+      )}
+      {actionTakenBy && (
+        <div style={{ marginTop: 4 }}>
+          <span>
+            <strong>Action taken by:</strong> {mapUserIdToRole(actionTakenBy)}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+
+
+    </div>
+  );
+};
+
+export default Form2;

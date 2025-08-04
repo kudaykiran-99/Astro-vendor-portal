@@ -33,6 +33,10 @@ const TenderEvaluator = ({ tenderId }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [historyVisible, setHistoryVisible] = useState(false);
+ // const [quotationFile, setQuotationFile] = useState(null);
+  const [priceBidFile, setPriceBidFile] = useState(null);
+  const [bidType, setBidType] = useState(''); // new
+
 
 
 
@@ -50,6 +54,7 @@ const TenderEvaluator = ({ tenderId }) => {
       const closingDate = new Date(year, month - 1, day, 23, 59, 59, 999); // end of day
 
       const now = new Date();
+      setBidType(res.data.responseData.bidType || '');
 
       setClosingDate(closingDate);
       setIsAfterClosing(now > closingDate); // true = too late
@@ -60,7 +65,7 @@ const TenderEvaluator = ({ tenderId }) => {
 }, [tenderId]);
 
 
-
+/*
   const handleFileChange = (docName, fileData) => {
     if (fileData === null) {
       setQuotationFile(null);
@@ -70,8 +75,26 @@ const TenderEvaluator = ({ tenderId }) => {
         originalName: fileData.file.name
       });
     }
-  };
+  };*/
+  const handleFileChange = (docName, fileData) => {
+  if (fileData === null) {
+    if (docName === 'quotationUpload') setQuotationFile(null);
+    if (docName === 'priceBid') setPriceBidFile(null);
+  } else {
+    const payload = {
+      file: fileData.file.originFileObj,
+      originalName: fileData.file.name
+    };
+    if (docName === 'quotationUpload') {
+      setQuotationFile({ file: payload.file, originalName: payload.originalName });
+    }
+    if (docName === 'priceBid') {
+      setPriceBidFile({ file: payload.file, originalName: payload.originalName });
+    }
+  }
+};
 
+/*
   const handleSubmit = async () => {
     if (!quotationFile) {
       message.warning('Please upload a quotation file');
@@ -126,7 +149,7 @@ const TenderEvaluator = ({ tenderId }) => {
          // setSuccessMessage('');
           navigate('/');
         }, 1000);*/
-        setSuccessMessage("Vendor quotation submitted successfully.");
+       /* setSuccessMessage("Vendor quotation submitted successfully.");
         setQuotationFile(null);   
         setShowPopup(true);   
       } else {
@@ -139,7 +162,66 @@ const TenderEvaluator = ({ tenderId }) => {
     } finally {
       setIsUploading(false);
     }
-  };
+  };*/
+  const handleSubmit = async () => {
+  if (!quotationFile) {
+    message.warning('Please upload a quotation file');
+    return;
+  }
+  if (bidType === 'Double' && !priceBidFile) {
+    message.warning('Please upload the price bid file');
+    return;
+  }
+
+  setIsUploading(true);
+  try {
+    // upload quotation
+    const upload = async (fileObj) => {
+      const fd = new FormData();
+      fd.append('file', fileObj.file);
+      const resp = await axios.post('/file/upload?fileType=Tender', fd, {
+        headers: { 'Content-Type': 'multipart/form-data', Accept: 'application/json' },
+      });
+      return resp.data.responseData.fileName;
+    };
+
+    const quotationFileName = await upload(quotationFile);
+    let priceBidFileName = null;
+    if (bidType === 'Double') {
+      priceBidFileName = await upload(priceBidFile);
+    }
+
+    const quotationBody = {
+      tenderId: tenderId,
+      vendorId: vendorId,
+      quotationFileName: quotationFileName,
+      fileType: 'Tender',
+      createdBy: null,
+      ...(bidType === 'Double' && { priceBidFileName }), // include if double
+    };
+
+    const response = await axios.post('/api/vendor-quotation', quotationBody, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const { responseStatus } = response.data;
+
+    if (responseStatus.statusCode === 0) {
+      message.success('Quotation submitted successfully');
+      setQuotationFile(null);
+      setPriceBidFile(null);
+      setShowPopup(true);
+    } else {
+      throw new Error('Failed to submit quotation');
+    }
+  } catch (error) {
+    console.error('Submission error:', error);
+    message.error('An error occurred while submitting your quotation');
+  } finally {
+    setIsUploading(false);
+  }
+};
+
 
 /*
   return (
@@ -237,6 +319,17 @@ const TenderEvaluator = ({ tenderId }) => {
       fileName={quotationFile ? quotationFile.originalName : 'No file selected'}
       value={quotationFile ? { file: { ...quotationFile } } : null}
     />
+    {bidType === 'Double' && (
+  <div style={{ marginTop: 12 }}>
+    <FileUpload
+      documentName="Upload Price Bid"
+      fileType="document"
+      onChange={fileData => handleFileChange('priceBid', fileData)}
+      fileName={priceBidFile ? priceBidFile.originalName : 'No file selected'}
+      value={priceBidFile ? { file: { ...priceBidFile } } : null}
+    />
+  </div>
+)}
 
     <div className="custom-btn" style={{ display: 'flex', gap: '10px' }}>
       <Btn onClick={handleSubmit} loading={isUploading}>
