@@ -16,7 +16,9 @@ import { HistoryOutlined } from '@ant-design/icons';
 
 
 
-const TenderEvaluator = ({ tenderId }) => {
+//const TenderEvaluator = ({ tenderId }) => {
+const TenderEvaluator = ({ tenderId, actionStatus }) => {
+
   //const { userId } = useSelector(state => state.auth);
   const vendorId = useSelector((state) => state.auth.vendorId);
   console.log("Vendor ID from Redux:", vendorId);
@@ -36,6 +38,9 @@ const TenderEvaluator = ({ tenderId }) => {
  // const [quotationFile, setQuotationFile] = useState(null);
   const [priceBidFile, setPriceBidFile] = useState(null);
   const [bidType, setBidType] = useState(''); // new
+  const [clarificationFile, setClarificationFile] = useState(null);
+  const [clarificationResponse, setClarificationResponse] = useState('');
+
 
 
 
@@ -75,7 +80,7 @@ const TenderEvaluator = ({ tenderId }) => {
         originalName: fileData.file.name
       });
     }
-  };*/
+  };*//*
   const handleFileChange = (docName, fileData) => {
   if (fileData === null) {
     if (docName === 'quotationUpload') setQuotationFile(null);
@@ -91,8 +96,32 @@ const TenderEvaluator = ({ tenderId }) => {
     if (docName === 'priceBid') {
       setPriceBidFile({ file: payload.file, originalName: payload.originalName });
     }
+    
+  }
+};*/
+const handleFileChange = (docName, fileData) => {
+  if (fileData === null) {
+    if (docName === 'quotationUpload') setQuotationFile(null);
+    if (docName === 'priceBid') setPriceBidFile(null);
+    if (docName === 'clarificationUpload') setClarificationFile(null);
+  } else {
+    const payload = {
+      file: fileData.file.originFileObj,
+      originalName: fileData.file.name
+    };
+
+    if (docName === 'quotationUpload') {
+      setQuotationFile({ file: payload.file, originalName: payload.originalName });
+    }
+    if (docName === 'priceBid') {
+      setPriceBidFile({ file: payload.file, originalName: payload.originalName });
+    }
+    if (docName === 'clarificationUpload') {
+      setClarificationFile({ file: payload.file, originalName: payload.originalName });
+    }
   }
 };
+
 
 /*
   const handleSubmit = async () => {
@@ -164,7 +193,19 @@ const TenderEvaluator = ({ tenderId }) => {
     }
   };*/
   const handleSubmit = async () => {
-  if (!quotationFile) {
+    console.log("its calling");
+
+  if (actionStatus === 'CHANGE_REQUESTED') {
+  if (!clarificationFile) {
+    message.warning('Please upload clarification document');
+    return;
+  }
+  if (!clarificationResponse) {
+    message.warning('Please enter clarification response');
+    return;
+  }
+}else{
+   if (!quotationFile) {
     message.warning('Please upload a quotation file');
     return;
   }
@@ -172,6 +213,8 @@ const TenderEvaluator = ({ tenderId }) => {
     message.warning('Please upload the price bid file');
     return;
   }
+}
+
 
   setIsUploading(true);
   try {
@@ -185,11 +228,18 @@ const TenderEvaluator = ({ tenderId }) => {
       return resp.data.responseData.fileName;
     };
 
-    const quotationFileName = await upload(quotationFile);
+   let quotationFileName =null;
     let priceBidFileName = null;
     if (bidType === 'Double') {
       priceBidFileName = await upload(priceBidFile);
     }
+    let clarificationFileName = null;
+    if (actionStatus === 'CHANGE_REQUESTED') {
+     clarificationFileName = await upload(clarificationFile);
+    }else{
+         quotationFileName = await upload(quotationFile);
+    }
+
 
     const quotationBody = {
       tenderId: tenderId,
@@ -198,6 +248,11 @@ const TenderEvaluator = ({ tenderId }) => {
       fileType: 'Tender',
       createdBy: null,
       ...(bidType === 'Double' && { priceBidFileName }), // include if double
+      ...(actionStatus === 'CHANGE_REQUESTED' && {
+    clarificationFileName,
+    vendorResponse:clarificationResponse,
+    status:"Change Requested",
+  }),
     };
 
     const response = await axios.post('/api/vendor-quotation', quotationBody, {
@@ -312,33 +367,60 @@ const TenderEvaluator = ({ tenderId }) => {
   </p>
 ) : (
   <>
-    <FileUpload
-      documentName="Upload Quotation for Evaluation"
-      fileType="document"
-      onChange={fileData => handleFileChange('quotationUpload', fileData)}
-      fileName={quotationFile ? quotationFile.originalName : 'No file selected'}
-      value={quotationFile ? { file: { ...quotationFile } } : null}
-    />
-    {bidType === 'Double' && (
-  <div style={{ marginTop: 12 }}>
-    <FileUpload
-      documentName="Upload Price Bid"
-      fileType="document"
-      onChange={fileData => handleFileChange('priceBid', fileData)}
-      fileName={priceBidFile ? priceBidFile.originalName : 'No file selected'}
-      value={priceBidFile ? { file: { ...priceBidFile } } : null}
-    />
-  </div>
-)}
+  {actionStatus === "CHANGE_REQUESTED" ? (
+    <>
+      <FileUpload
+        documentName="Upload Clarification Document"
+        fileType="document"
+         onChange={fileData => handleFileChange('clarificationUpload', fileData)} 
+        fileName={clarificationFile ? clarificationFile.originalName : 'No file selected'}
+        value={clarificationFile ? { file: { ...clarificationFile } } : null}
+      />
+      <div style={{ marginTop: 16 }}>
+        <label><b>Clarification Response:</b></label>
+        <textarea
+          rows={4}
+          style={{ width: '100%', marginTop: 8 }}
+          placeholder="Enter clarification response"
+          value={clarificationResponse}
+          onChange={e => setClarificationResponse(e.target.value)}
+        />
+      </div>
+    </>
+  ) : (
+    <>
+      <FileUpload
+        documentName="Upload Technical Bid"
+        fileType="document"
+        onChange={fileData => handleFileChange('quotationUpload', fileData)}
+        fileName={quotationFile ? quotationFile.originalName : 'No file selected'}
+        value={quotationFile ? { file: { ...quotationFile } } : null}
+      />
+      {bidType === 'Double' && (
+        <div style={{ marginTop: 12 }}>
+          <FileUpload
+            documentName="Upload Price Bid"
+            fileType="document"
+            onChange={fileData => handleFileChange('priceBid', fileData)}
+            fileName={priceBidFile ? priceBidFile.originalName : 'No file selected'}
+            value={priceBidFile ? { file: { ...priceBidFile } } : null}
+          />
+        </div>
+      )}
+    </>
+  )}
 
-    <div className="custom-btn" style={{ display: 'flex', gap: '10px' }}>
+     <div className="custom-btn" style={{ display: 'flex', gap: '10px', marginTop: 16 }}>
       <Btn onClick={handleSubmit} loading={isUploading}>
-        Send Quotation for Evaluation
+        {actionStatus === "CHANGE_REQUESTED"
+          ? "Send Clarification Response"
+          : "Send Quotation for Evaluation"}
       </Btn>
-      
-
     </div>
-  </>
+
+</>
+
+
 )}
    <QueueModal
   modalVisible={modalVisible}

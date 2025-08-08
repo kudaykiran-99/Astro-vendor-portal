@@ -646,15 +646,15 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
             alignItems: "center",
           }}
         >
-          <strong style={{ marginRight: 8 }}>Change Requested</strong>
+          <strong style={{ marginRight: 8 }}>Clarification sought</strong>
         { /* <span>
             by <em>{mapUserIdToRole(actionTakenBy)}</em>
           </span>*/}
-          {actionTakenBy && (
+          {/*actionTakenBy && (
             <span>
               by <em>{actionTakenBy}</em>
             </span>
-          )}
+          )*/}
           {remarks && (
             <span>
               — <strong>Remarks:</strong> {remarks}
@@ -666,7 +666,7 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
       {/* Show TenderEvaluator when change requested, submitted, or no action yet */}
       {selectedTenderId && (isChangeRequest || isSubmittedOrNone) && (
         <div style={{ marginTop: "40px" }}>
-          <TenderEvaluator key={selectedTenderId} tenderId={selectedTenderId} />
+          <TenderEvaluator key={selectedTenderId} tenderId={selectedTenderId}  actionStatus={actionStatus}/>
         </div>
       )}
 
@@ -680,20 +680,54 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
         </div>
       )*/}
        {/* Purchase Order: only when Store Purchase Officer did VENDOR QULIFIED */}
-      {selectedTenderId &&
-        actionTakenBy === "Store Purchase Officer" &&
-        actionStatus === "VENDOR QULIFIED" && (
-          <div style={{ marginTop: "40px" }}>
-            <PurchaseOrderDetails
-              key={selectedTenderId}
-              tenderId={selectedTenderId}
-            />
-          </div>
+    {selectedTenderId &&
+  actionTakenBy === "Store Purchase Officer" && (
+    <div style={{ marginTop: "40px" }}>
+      {actionStatus === "PO Completed" && (
+        <>
+          <p
+            style={{
+              fontWeight: "bold",
+              marginBottom: "10px",
+              color: "green",
+            }}
+          >
+            PO generated with details
+          </p>
+          <PurchaseOrderDetails
+            key={selectedTenderId}
+            tenderId={selectedTenderId}
+          />
+        </>
+      )}
+
+      {actionStatus === "PO Raised" && (
+        <p
+          style={{
+            fontWeight: "bold",
+            marginBottom: "10px",
+            color: "green",
+          }}
+        >
+          PO Proposed and approval in progress
+        </p>
+      )}
+
+      {actionStatus === "VENDOR QULIFIED" &&
+        actionStatus !== "PO Completed" &&
+        actionStatus !== "PO Raised" && (
+          <PurchaseOrderDetails
+            key={selectedTenderId}
+            tenderId={selectedTenderId}
+          />
         )}
+    </div>
+)}
+
+
 
       {/* Show rejection reason when explicitly rejected or unqualified (excluding change request) */}
-   { /* Show rejection reason only when explicitly rejected */}
-{selectedTenderId && (actionStatus === "ACCEPTED" || actionStatus === "REJECTED") && (
+ {selectedTenderId && (actionStatus === "ACCEPTED" || actionStatus === "REJECTED") && (
   <div style={{ marginTop: "40px" }}>
     <div
       style={{
@@ -708,24 +742,39 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
       <strong>
         Vendor quotation for Tender ID {selectedTenderId} is {actionStatus}.
       </strong>
-      {remarks && (
+
+      {actionStatus === "REJECTED" && remarks && (
         <div style={{ marginTop: 8 }}>
           <span>
             <strong>Remarks:</strong> {remarks}
           </span>
         </div>
       )}
-      {actionTakenBy && (
-        <div style={{ marginTop: 4 }}>
+
+      {/* For Indentor or Purchase Personnel */}
+      {(actionTakenBy === "Purchase personnel" || actionTakenBy === "Indent Creator") && (
+        <div style={{ marginTop: 8 }}>
+          <span>Tender Evaluation in progress</span>
+        </div>
+      )}
+
+      {/* For Store Purchase Officer */}
+      {actionTakenBy === "Store Purchase Officer" && (
+        <div style={{ marginTop: 8 }}>
           <span>
-            <strong>Action taken by:</strong> {mapUserIdToRole(actionTakenBy)}
+            {actionStatus === "ACCEPTED"
+              ? "Accepted status of vendor and Purchase order pending to be proposed"
+              : "Rejected status of vendor and Purchase order pending to be proposed"}
           </span>
         </div>
       )}
     </div>
   </div>
 )}
-  {/* Special red box when Store Purchase Officer accepted but PO not raised */}
+
+
+
+  {/* Special red box when Store Purchase Officer accepted but PO not raised 
       {selectedTenderId &&
         actionTakenBy === "Store Purchase Officer" &&
         actionStatus === "ACCEPTED" && (
@@ -749,7 +798,7 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
                  )}
             </div>
           </div>
-        )}
+        )}*/}
 {/* Red box for CHANGE_REQUESTED_TO_INTENTOR */}
 {selectedTenderId && isChangeRequestToIndentor && (
   <div style={{ marginTop: "40px" }}>
@@ -771,13 +820,13 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
           </span>
         </div>
       )}
-      {actionTakenBy && (
+      {/*actionTakenBy && (
         <div style={{ marginTop: 4 }}>
           <span>
             <strong>Action taken by:</strong> {mapUserIdToRole(actionTakenBy)}
           </span>
         </div>
-      )}
+      )*/}
     </div>
   </div>
 )}
