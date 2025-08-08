@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Descriptions, Spin, message } from 'antd';
+import { Card, Descriptions, Spin, message ,Button} from 'antd';
 import FormContainer from './DKG_FormContainer';
 import Heading from './DKG_Heading';
 import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { baseURL } from '../App';
+
 
 const PurchaseOrderDetails = ({ tenderId }) => {
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
-
+ const vendorId = useSelector((state) => state.auth.vendorId);
   useEffect(() => {
     const fetchPurchaseOrderDetails = async () => {
       try {
@@ -38,6 +41,10 @@ const PurchaseOrderDetails = ({ tenderId }) => {
       </FormContainer>
     );
   }
+  const handleOpenTenderFormat = () => {
+  const url = `${baseURL}/data/tender-format?tenderId=${tenderId}&vendorId=${vendorId}`;
+  window.open(url, '_blank');
+};
 
   const {
     tenderNumber,
@@ -77,7 +84,7 @@ const PurchaseOrderDetails = ({ tenderId }) => {
             {date ? new Date(date).toLocaleDateString() : 'N/A'}
           </Descriptions.Item>
           <Descriptions.Item label="Tender Request Copy">
-            {tenderRequestCopy !== 'null' ? tenderRequestCopy : 'N/A'}
+           <Button onClick={handleOpenTenderFormat}>View Tender Copy</Button>
           </Descriptions.Item>
           <Descriptions.Item label="PO Copy">
             {poCopy !== 'null' ? poCopy : 'N/A'}
