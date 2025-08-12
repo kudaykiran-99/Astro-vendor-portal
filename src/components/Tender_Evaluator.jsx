@@ -209,10 +209,17 @@ const handleFileChange = (docName, fileData) => {
     message.warning('Please upload a quotation file');
     return;
   }
-  if (bidType === 'Double' && !priceBidFile) {
+ /* if (bidType === 'Double' && !priceBidFile) {
+    message.warning('Please upload the price bid file');
+    return;
+  }*/
+
+  if (!priceBidFile) {
     message.warning('Please upload the price bid file');
     return;
   }
+
+ 
 }
 
 
@@ -230,9 +237,13 @@ const handleFileChange = (docName, fileData) => {
 
    let quotationFileName =null;
     let priceBidFileName = null;
-    if (bidType === 'Double') {
+   /* if (bidType === 'Double') {
+      priceBidFileName = await upload(priceBidFile);
+    }*/
+    if (priceBidFile) {
       priceBidFileName = await upload(priceBidFile);
     }
+
     let clarificationFileName = null;
     if (actionStatus === 'CHANGE_REQUESTED') {
      clarificationFileName = await upload(clarificationFile);
@@ -247,8 +258,9 @@ const handleFileChange = (docName, fileData) => {
       quotationFileName: quotationFileName,
       fileType: 'Tender',
       createdBy: null,
-      ...(bidType === 'Double' && { priceBidFileName }), // include if double
-      ...(actionStatus === 'CHANGE_REQUESTED' && {
+    //  ...(bidType === 'Double' && { priceBidFileName }), // include if double
+    ...((bidType === 'Double' || bidType === 'Single') && { priceBidFileName }),
+    ...(actionStatus === 'CHANGE_REQUESTED' && {
     clarificationFileName,
     vendorResponse:clarificationResponse,
     status:"Change Requested",
@@ -463,7 +475,7 @@ const handleFileChange = (docName, fileData) => {
           fileName={quotationFile ? quotationFile.originalName : 'No file selected'}
           value={quotationFile ? { file: { ...quotationFile } } : null}
         />
-        {bidType === 'Double' && (
+        {//bidType === 'Double' && (
           <div style={{ marginTop: 12 }}>
             <FileUpload
               documentName="Upload Price Bid"
@@ -473,7 +485,8 @@ const handleFileChange = (docName, fileData) => {
               value={priceBidFile ? { file: { ...priceBidFile } } : null}
             />
           </div>
-        )}
+       // )
+       }
       </>
     )}
 
