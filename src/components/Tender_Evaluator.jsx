@@ -354,7 +354,7 @@ const handleFileChange = (docName, fileData) => {
 
 
 
-      {/* Display the closing date */}
+  { /*  
      {closingDate && (
   <p style={{ fontWeight: 'bold' }}>
     Closing Date: {closingDate.toLocaleDateString()}
@@ -422,6 +422,71 @@ const handleFileChange = (docName, fileData) => {
 
 
 )}
+*/}
+ {closingDate && (
+  <p style={{ fontWeight: 'bold' }}>
+    Closing Date: {closingDate.toLocaleDateString()}
+  </p>
+)}
+{isAfterClosing && actionStatus !== "CHANGE_REQUESTED" ? (
+  <p style={{ color: 'red', fontWeight: 'bold' }}>
+    Tender closing date is completed. Not allowed to upload Quotation document.
+  </p>
+) : (
+  <>
+    {actionStatus === "CHANGE_REQUESTED" ? (
+      <>
+        <FileUpload
+          documentName="Upload Clarification Document"
+          fileType="document"
+          onChange={fileData => handleFileChange('clarificationUpload', fileData)}
+          fileName={clarificationFile ? clarificationFile.originalName : 'No file selected'}
+          value={clarificationFile ? { file: { ...clarificationFile } } : null}
+        />
+        <div style={{ marginTop: 16 }}>
+          <label><b>Clarification Response:</b></label>
+          <textarea
+            rows={4}
+            style={{ width: '100%', marginTop: 8 }}
+            placeholder="Enter clarification response"
+            value={clarificationResponse}
+            onChange={e => setClarificationResponse(e.target.value)}
+          />
+        </div>
+      </>
+    ) : (
+      <>
+        <FileUpload
+          documentName="Upload Technical Bid"
+          fileType="document"
+          onChange={fileData => handleFileChange('quotationUpload', fileData)}
+          fileName={quotationFile ? quotationFile.originalName : 'No file selected'}
+          value={quotationFile ? { file: { ...quotationFile } } : null}
+        />
+        {bidType === 'Double' && (
+          <div style={{ marginTop: 12 }}>
+            <FileUpload
+              documentName="Upload Price Bid"
+              fileType="document"
+              onChange={fileData => handleFileChange('priceBid', fileData)}
+              fileName={priceBidFile ? priceBidFile.originalName : 'No file selected'}
+              value={priceBidFile ? { file: { ...priceBidFile } } : null}
+            />
+          </div>
+        )}
+      </>
+    )}
+
+    <div className="custom-btn" style={{ display: 'flex', gap: '10px', marginTop: 16 }}>
+      <Btn onClick={handleSubmit} loading={isUploading}>
+        {actionStatus === "CHANGE_REQUESTED"
+          ? "Send Clarification Response"
+          : "Send Quotation for Evaluation"}
+      </Btn>
+    </div>
+  </>
+)}
+
    <QueueModal
   modalVisible={modalVisible}
   setModalVisible={setModalVisible}

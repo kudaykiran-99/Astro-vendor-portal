@@ -746,7 +746,7 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
       {actionStatus === "REJECTED" && remarks && (
         <div style={{ marginTop: 8 }}>
           <span>
-            <strong>Remarks:</strong> {remarks}
+            <strong>Reason For Rejection:</strong> {remarks}
           </span>
         </div>
       )}
