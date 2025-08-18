@@ -353,14 +353,14 @@ const handleFileChange = (docName, fileData) => {
       {tenderId}
     </span>
   </p>
-
+{/*
   <Button
     type="link"
     icon={<HistoryOutlined />}
     onClick={() => setHistoryVisible(true)}
   >
     View Quotation History
-  </Button>
+  </Button>*/}
 </div>
 
 

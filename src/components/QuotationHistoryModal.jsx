@@ -10,19 +10,24 @@ const QuotationHistoryModal = ({ tenderId, vendorId, open, onClose }) => {
 
   const columns = [
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (text) => (
-        <Tag color={
-          text === 'Rejected' ? 'red' :
-          text === 'CHANGE_REQUESTED' ? 'orange' :
-          'green'
-        }>
-          {text}
-        </Tag>
-      ),
-    },
+  title: 'Status',
+  dataIndex: 'status',
+  key: 'status',
+  render: (text) => {
+    let color =
+      text === 'Rejected'
+        ? 'red'
+        : text === 'CHANGE_REQUESTED'
+        ? 'orange'
+        : 'green';
+
+    let label = text === 'CHANGE_REQUESTED'
+      ? 'Clarification sought'
+      : text;
+
+    return <Tag color={color}>{label}</Tag>;
+  }
+},
     {
       title: 'Remarks',
       dataIndex: 'remarks',

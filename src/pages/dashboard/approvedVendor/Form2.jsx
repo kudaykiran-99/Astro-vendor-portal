@@ -1,10 +1,13 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Card, Row, Col, message, Spin , Tag} from "antd";
+import { Card, Row, Col, message, Spin ,Button, Tag} from "antd";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import TenderEvaluator from "../../../components/Tender_Evaluator";
 import PurchaseOrderDetails from "../../../components/Purchaseorder_details";
+import { Modal } from "antd";
+import QuotationHistoryModal from '../../../components/QuotationHistoryModal';
+import { HistoryOutlined } from '@ant-design/icons';
 
 
 // import React, { useEffect, useState } from "react";
@@ -504,6 +507,7 @@ const Form2 = () => {
   const [selectedTenderId, setSelectedTenderId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTenderLoading, setSelectedTenderLoading] = useState(false);
+  const [historyVisible, setHistoryVisible] = useState(false);
 
   const [vendorState, setVendorState] = useState({
     qualified: false,
@@ -651,6 +655,25 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
           </Col>
         ))}
       </Row>
+      {selectedTenderId && (
+  <>
+    <Button
+      type="link"
+      icon={<HistoryOutlined />}
+      onClick={() => setHistoryVisible(true)}
+      style={{ marginTop: 20 }}
+    >
+      View Quotation History
+    </Button>
+
+    <QuotationHistoryModal
+      open={historyVisible}
+      onClose={() => setHistoryVisible(false)}
+      tenderId={selectedTenderId}
+      vendorId={vendorId}
+    />
+  </>
+)}
 
       {/* Change Request Banner */}
       {selectedTenderId && isChangeRequest && (
@@ -928,7 +951,9 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
       }}
     >
       <strong>
-        Vendor quotation for Tender ID {selectedTenderId} is {actionStatus}.
+        Vendor quotation for Tender ID {selectedTenderId} is {actionStatus === "CHANGE_REQUESTED_TO_INTENTOR"
+          ? "Clarification Sought to Indentor"
+          : actionStatus}.
       </strong>
       {remarks && (
         <div style={{ marginTop: 8 }}>
@@ -937,6 +962,9 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
           </span>
         </div>
       )}
+      <div style={{ marginTop: 8 }}>
+          <span>Tender Evaluation in progress</span>
+      </div>
       {/*actionTakenBy && (
         <div style={{ marginTop: 4 }}>
           <span>
