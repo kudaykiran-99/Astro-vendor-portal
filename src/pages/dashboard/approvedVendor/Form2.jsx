@@ -8,7 +8,7 @@ import PurchaseOrderDetails from "../../../components/Purchaseorder_details";
 import { Modal } from "antd";
 import QuotationHistoryModal from '../../../components/QuotationHistoryModal';
 import { HistoryOutlined } from '@ant-design/icons';
-
+import AllVendorsQuotationsstatus from '../../../components/AllVendorsQuotationstatus';
 
 // import React, { useEffect, useState } from "react";
 // import { Form, Input, Button, Row, Col, message } from "antd";
@@ -508,6 +508,8 @@ const Form2 = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTenderLoading, setSelectedTenderLoading] = useState(false);
   const [historyVisible, setHistoryVisible] = useState(false);
+  const [allVendorVisible, setAllVendorVisible] = useState(false);
+
 
   const [vendorState, setVendorState] = useState({
     qualified: false,
@@ -627,6 +629,18 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
   const isRejected = actionStatus === "REJECTED";
 
 
+const getDisplayStatus = (actionStatus) => {
+  if (!actionStatus) return "Pending";
+
+  switch (actionStatus.toUpperCase()) {
+    case "ACCEPTED":
+      return "Qualified";
+    case "REJECTED":
+      return "Disqualified";
+    default:
+      return actionStatus; 
+  }
+};
 
   return (
     <div style={{ padding: "20px" }}>
@@ -655,7 +669,7 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
           </Col>
         ))}
       </Row>
-      {selectedTenderId && (
+      {/*selectedTenderId && (
   <>
     <Button
       type="link"
@@ -673,7 +687,45 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
       vendorId={vendorId}
     />
   </>
+)*/}
+{selectedTenderId && (
+  <>
+    <Button
+      type="link"
+      icon={<HistoryOutlined />}
+      onClick={() => setHistoryVisible(true)}
+      style={{ marginTop: 20 }}
+    >
+      View Quotation History
+    </Button>
+
+    <Button
+      type="link"
+      icon={<HistoryOutlined />}
+      onClick={() => setAllVendorVisible(true)}
+      style={{ marginTop: 20, marginLeft: 10 }}
+    >
+      View All Vendors Status
+    </Button>
+
+    {/* Existing Quotation History */}
+    <QuotationHistoryModal
+      open={historyVisible}
+      onClose={() => setHistoryVisible(false)}
+      tenderId={selectedTenderId}
+      vendorId={vendorId}
+    />
+
+    {/* New All Vendors Status Modal */}
+    <AllVendorsQuotationsstatus
+      open={allVendorVisible}
+      onClose={() => setAllVendorVisible(false)}
+      tenderId={selectedTenderId}
+      vendorId={vendorId}
+    />
+  </>
 )}
+
 
       {/* Change Request Banner */}
       {selectedTenderId && isChangeRequest && (
@@ -761,7 +813,7 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
     {actionStatusAfterPoGenerated?.toLowerCase() === "rejected" ? (
       <div style={{ marginTop: 8, fontWeight: "bold" }}>
         <p>
-          Vendor quotation for Tender ID {selectedTenderId} is Rejected.
+          Vendor quotation for Tender ID {selectedTenderId} is Disqualified.
         </p>
         <p>
           Reason For Rejection: {remarks || "No remarks provided"}
@@ -769,18 +821,18 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
         {approvedVendorPoData === "PO Completed" ? (
       <>
         <p style={{ color: "green" }}>
-        Purchase order has been generated for Vendor ID: {povendorId} and Approval process is Completed
+        Purchase order has been Generated for Vendor ID: {povendorId} and Approval process is Completed
         </p>
-       <div style={{ marginTop: 12 }}>
+      {/* <div style={{ marginTop: 12 }}>
         <PurchaseOrderDetails
           key={selectedTenderId}
           tenderId={selectedTenderId}
         />
-    </div>
+    </div>*/}
       </>
     ) : (
       <p style={{ color: "green" }}>
-       Purchase order has been generated for Vendor ID: {povendorId} and approval is in progress.
+       Purchase order has been proposed for Vendor ID: {povendorId} and approval is in progress.
       </p>
     )}
         
@@ -805,7 +857,7 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
            // color: "orange",
           }}
         >
-          Vendor Quotation is Accepted but not generated the Purchase order.
+          Vendor quotation is qualified but the Purchase Order has not been proposed.
         </p>
        {approvedVendorPoData === "PO Completed" ? (
         <>
@@ -816,12 +868,12 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
             }}>
           Purchase order has been generated for Vendor ID: {povendorId} and approval process is Completed
           </p>
-          <div style={{ marginTop: 12 }}>
+       { /*  <div style={{ marginTop: 12 }}>
             <PurchaseOrderDetails
             key={selectedTenderId}
             tenderId={selectedTenderId}
           />
-          </div>
+          </div>*/}
         </>
       ) : (
       <p style={{ 
@@ -829,7 +881,7 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
         fontWeight: "bold",
         marginBottom: "10px",
         }}>
-       Purchase order has been generated for Vendor ID: {povendorId} and approval is in progress.
+       Purchase Order has been Proposed for Vendor ID: {povendorId} and approval is in progress.
        </p>
      )}
 
@@ -868,9 +920,17 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
         borderRadius: 4,
       }}
     >
+    {actionTakenBy === "Indent Creator" && (
       <strong>
-        Vendor quotation for Tender ID {selectedTenderId} is {actionStatus}.
+        Vendor quotation for Tender ID {selectedTenderId} is {getDisplayStatus(actionStatus)} for further tender evaluation process.
       </strong>
+    )}
+     {actionTakenBy === "Store Purchase Officer" && (
+      <strong>
+        Vendor quotation for Tender ID {selectedTenderId} is {getDisplayStatus(actionStatus)}.
+      </strong>
+    )}
+
 
       {actionStatus === "REJECTED" && remarks && (
         <div style={{ marginTop: 8 }}>
@@ -881,11 +941,11 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
       )}
 
       {/* For Indentor or Purchase Personnel */}
-      {(actionTakenBy === "Purchase personnel" || actionTakenBy === "Indent Creator") && (
+      {/*(actionTakenBy === "Purchase personnel" || actionTakenBy === "Indent Creator") && (
         <div style={{ marginTop: 8 }}>
           <span>Tender Evaluation in progress</span>
         </div>
-      )}
+      )*/}
 
       {/* For Store Purchase Officer */}
       {/*actionTakenBy === "Store Purchase Officer" && (
@@ -903,7 +963,7 @@ const isChangeRequestToIndentor = actionStatus === "CHANGE_REQUESTED_TO_INTENTOR
       {actionStatus === "ACCEPTED"
         ? "Purchase order pending to be proposed"
         : actionStatus === "REJECTED"
-        ? `Purchase order not yet generated on the accepted vendors: ${Array.isArray(vendorIds) ? vendorIds.join(", ") : ""}`
+        ? `Purchase order has not yet been generated for the Qualified Vendors.: ${Array.isArray(vendorIds) ? vendorIds.join(", ") : ""}`
         : "Purchase order pending to be proposed"}
     </span>
   </div>
