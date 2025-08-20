@@ -646,7 +646,7 @@ const getDisplayStatus = (actionStatus) => {
     <div style={{ padding: "20px" }}>
       <h2 className="font-bold mb-2">Approved Tender IDs</h2>
       <Row gutter={[16, 16]}>
-        {tenderIds.map((tenderId) => (
+        {/*tenderIds.map((tenderId) => (
           <Col key={tenderId} xs={24} sm={12} md={8} lg={6}>
             <Card
               hoverable
@@ -667,7 +667,34 @@ const getDisplayStatus = (actionStatus) => {
               )}
             </Card>
           </Col>
-        ))}
+        ))*/}
+        {tenderIds.map((tender) => (
+          <Col key={tender.tenderId} xs={24} sm={12} md={8} lg={6}>
+            <Card
+              hoverable
+              style={{
+              textAlign: "center",
+              cursor: "pointer",
+              border:
+                selectedTenderId === tender.tenderId ? "2px solid #1890ff" : undefined,
+              }}
+              onClick={() => handleTenderCardClick(tender.tenderId)}
+             >
+          {selectedTenderLoading && selectedTenderId === tender.tenderId ? (
+          <Spin />
+            ) : (
+            <>
+              <a style={{ color: "inherit", fontWeight: "semi bold" }}>
+              {tender.tenderId}
+              </a>
+              <div style={{ marginTop: 4, color: "#555" }}>{tender.title}</div>
+            </>
+             )}
+          </Card>
+       </Col>
+      ))}
+
+
       </Row>
       {/*selectedTenderId && (
   <>
@@ -920,7 +947,7 @@ const getDisplayStatus = (actionStatus) => {
         borderRadius: 4,
       }}
     >
-    {actionTakenBy === "Indent Creator" && (
+    {actionTakenBy === "Indent Creator" || actionTakenBy === "Purchase personnel" && (
       <strong>
         Vendor quotation for Tender ID {selectedTenderId} is {getDisplayStatus(actionStatus)} for further tender evaluation process.
       </strong>

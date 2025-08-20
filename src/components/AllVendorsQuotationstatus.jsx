@@ -27,9 +27,9 @@ const AllVendorsQuotationsstatus = ({ tenderId, vendorId, open, onClose }) => {
   key: 'status',
   render: (text) => {
     let color =
-      text === 'Rejected'
+      text === 'Disqualified'
         ? 'red'
-        : text === 'CHANGE_REQUESTED'
+        : text === 'Disqualified'
         ? 'orange'
         : 'green';
 
@@ -73,7 +73,7 @@ const AllVendorsQuotationsstatus = ({ tenderId, vendorId, open, onClose }) => {
       width={700}
       title={
         <span>
-          <HistoryOutlined />All Vendor status {vendorId}
+          <HistoryOutlined />All Vendors status 
         </span>
       }
     >
