@@ -45,6 +45,11 @@ const PurchaseOrderDetails = ({ tenderId }) => {
   const url = `${baseURL}/data/tender-format?tenderId=${tenderId}&vendorId=${vendorId}`;
   window.open(url, '_blank');
 };
+const handleOpenPoFormat = () => {
+   const poId = 'PO' + tenderId.substring(1);
+  const url = `${baseURL}/data/po-format?poId=${poId}`;
+  window.open(url, '_blank');
+};
 
   const {
     tenderNumber,
@@ -87,7 +92,7 @@ const PurchaseOrderDetails = ({ tenderId }) => {
            <Button onClick={handleOpenTenderFormat}>View Tender Copy</Button>
           </Descriptions.Item>
           <Descriptions.Item label="PO Copy">
-            {poCopy !== 'null' ? poCopy : 'N/A'}
+             <Button onClick={handleOpenPoFormat}>View Po Copy</Button>
           </Descriptions.Item>
         </Descriptions>
       </div>
