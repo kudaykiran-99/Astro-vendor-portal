@@ -14,7 +14,7 @@ import { Modal } from "antd";
 import QuotationHistoryModal from './QuotationHistoryModal';
 import { HistoryOutlined } from '@ant-design/icons';
 
-
+import { baseURL } from '../App';
 
 //const TenderEvaluator = ({ tenderId }) => {
 const TenderEvaluator = ({ tenderId, actionStatus }) => {
@@ -310,6 +310,11 @@ const handleFileChange = (docName, fileData) => {
       </div>
     </FormContainer>
   );*/
+  const handleOpenTenderFormat = () => {
+  const url = `${baseURL}/data/tender-format?tenderId=${tenderId}&vendorId=${vendorId}`;
+  window.open(url, "_blank");
+};
+
   
 
   return (
@@ -353,6 +358,8 @@ const handleFileChange = (docName, fileData) => {
       {tenderId}
     </span>
   </p>
+  <Button onClick={handleOpenTenderFormat}>View Tender Copy</Button>
+
 {/*
   <Button
     type="link"

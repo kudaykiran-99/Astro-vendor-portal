@@ -71,7 +71,8 @@ const documentLabels = {
                 <div className="detail-item"><strong>Tender ID:</strong> {detailsData.tenderId || "N/A"}</div>
                 <div className="detail-item"><strong>Title:</strong> {detailsData.titleOfTender || "N/A"}</div>
                 <div className="detail-item"><strong>Type of Tender:</strong> {detailsData.bidType || "N/A"}</div>
-                 <div className="detail-item"><strong>Buyer Email:</strong> {"purchase@iiap.res.in"}</div>
+                <div className="detail-item"><strong>Buyer Email:</strong> {"purchase@iiap.res.in"}</div>
+
               </Col>
               <Col span={12}>
                 <div className="detail-item"><strong>Tender Start Date:</strong> {detailsData.openingDate || "N/A"}</div>
@@ -89,6 +90,58 @@ const documentLabels = {
               </Col>
             </Row>
           </div>
+           {detailsData.buyBack && (
+                <div className="detail-section">
+                  <Typography.Title level={5} className="section-title">
+                    <ProjectOutlined /> Buy Back
+                  </Typography.Title>
+                  <Row gutter={24}>
+                    <Col span={12}>
+                      <div className="detail-item">
+                        <strong>Buy Back:</strong>{" "}
+                        {String(detailsData.buyBack) || "N/A"}
+                      </div>
+                    </Col>
+                    <Col span={12}>
+                      <div className="detail-item">
+                        <strong>Buy Back File:</strong>
+                        {detailsData.uploadBuyBackFileNames
+                          ? detailsData.uploadBuyBackFileNames
+                              .split(",")
+                              .map((fileName, index) => (
+                                <div key={index}>
+                                  <a
+                                    href={`${baseURL}/file/view/Tender/${fileName.trim()}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {fileName.trim()} (View)
+                                  </a>
+                                  {index <
+                                    detailsData.uploadPACOrBrandPACFileName.split(
+                                      ", "
+                                    ).length -
+                                      1 && ", "}
+                                </div>
+                              ))
+                          : "N/A"}
+                      </div>
+                      <div className="detail-item">
+                        <strong>Model Number:</strong>{" "}
+                        {detailsData.modelNumber || "N/A"}
+                      </div>
+                      <div className="detail-item">
+                        <strong>Serial Number:</strong>{" "}
+                        {detailsData.serialNumber || "N/A"}
+                      </div>
+                      <div className="detail-item">
+                        <strong>Date Of Purchase:</strong> 
+                        {detailsData.dateOfPurchase}
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+              )}
 
           {/* Document Details */}
        { /*  <div className="detail-section">
